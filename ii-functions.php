@@ -13,9 +13,8 @@ function getecho($t) {
 	return @file_get_contents ("echo/$t");
 }
 
-function b64c($s,$us) {
-	if($us) return base64_encode($s);
-	else return rtrim(strtr(base64_encode($s), '+/', '-_'), '=');
+function b64c($s) {
+	return rtrim(strtr(base64_encode($s), '+/', '-_'), '=');
 }
 
 function b64d($s) {
@@ -23,7 +22,7 @@ function b64d($s) {
 }
 
 function hsh($s) {
-	$s1 = b64c(hash("sha256",$s,true), 0);
+	$s1 = b64c(hash("sha256",$s,true));
 	$s1=str_replace("-","A",$s1);
 	$s1=str_replace("_","z",$s1);
 	return substr($s1,0,20);
@@ -110,6 +109,7 @@ $subj\n\n$msg";
 	@fputs($echofile,$msgid."\n"); fclose($echofile);
 	@$msgfile=fopen("msg/".$msgid,"w");
 	@fputs($msgfile,$msgwrite); fclose($msgfile);
+	return $msgid;
 }
 
 function savemsg($h,$e,$t) {
