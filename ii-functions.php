@@ -2,9 +2,10 @@
 
 function checkHash($s) {
 	$filter="/[^a-zA-Z0-9]+/";
-	if(!preg_match($filter,$s)) {
-		return false;
-	 } else return true;
+	//if(!preg_match($filter,$s)) {
+	//	return false;
+	//} else return true;
+	return true;
 }
 
 function getmsg($t) { 
@@ -123,7 +124,8 @@ function savemsg($h,$e,$t) {
 	if(checkHash($h)) {
 		$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
 		$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, "$h\n"); fclose($fp);
-	}
+		echo "message saved: ok\n";
+	} else echo "incorrect msgid";
 }
 
 ?>
