@@ -4,7 +4,7 @@ function checkHash($s) {
 	$filter="/[^a-zA-Z0-9]+/";
 	if(!preg_match($filter,$s)) {
 		return false;
-	else return true;
+	 } else return true;
 }
 
 function getmsg($t) { 
