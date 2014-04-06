@@ -1,7 +1,9 @@
 <?php
 
-function fe($s) { return preg_replace("/[^a-z0-9!_.-]+/", "", $s); }
-function fm($s) { return preg_replace("/[^a-zA-Z0-9]+/", "", $s); }
+function checkHash($s) {
+	$filter="/[^a-zA-Z0-9]+/";
+	if(!preg_match($filter,$s)) return false;
+}
 
 function getmsg($t) { 
 	$t = preg_replace("/[^a-zA-Z0-9]+/", "", $t); 
@@ -58,6 +60,8 @@ function pointSend($msg,$authname,$addr) {
 			$othermsg.=$goodmsg[$i]."\n";
 		}
 	}
+	if(count($othermsg)>64099) die("error:msg big!");
+
 	if(substr($rep,0,7)=="@repto:") {
 		$repto=substr($rep,7);
 	}
@@ -113,8 +117,11 @@ $subj\n\n$msg";
 }
 
 function savemsg($h,$e,$t) {
-	$fp = fopen('msg/'.fm($h), 'wb'); fwrite($fp, $t); fclose($fp);
-	$fp = fopen('echo/'.fe($e), 'ab'); fwrite($fp, "$h\n"); fclose($fp);
+	checkEcho($e);
+	if(checkHash($h)) {
+		$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
+		$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, "$h\n"); fclose($fp);
+	}
 }
 
 ?>

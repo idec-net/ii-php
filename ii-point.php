@@ -7,10 +7,10 @@ $opts = explode('/',$q);
 $auth=0;
 $authname=0;
 
-$nodecode="123456";
+$nodecode="";
 $parr=[
-	["78910","root"],
-	["password","point1"]
+	["","root"],
+	["","point1"]
 ];
 
 
@@ -38,7 +38,9 @@ if ($opts[1] == 'u' and $opts[2] == 'e') {
 
 if (!empty($_POST['upush'])) {
 	$upush = $_POST['upush']; $nauth = $_POST['nauth']; $echoarea = $_POST['echoarea'];
-	if ($auth != $nodecode) { die('auth error'); }
+	if (empty($nodecode) or ($auth != $nodecode)) {
+		die('auth error');
+	}
 	$lines = explode("\n",$upush);
 
 	for ($x=0;$x<count($lines);$x++) {
@@ -56,7 +58,7 @@ if ($opts[1] == 'u' and $opts[2] == 'point') {
 		$ms=$_POST['tmsg'];
 	} else $error=1;
 	$addr=0;
-	if(count($ms)>120000) die("error:msg big!");
+	if(count($ms)>65535) die("error:msg big!");
 	if(!$error) {
 		for($i=0;$i<count($parr);$i++) {
 			if($parr[$i][0]==$au) {
