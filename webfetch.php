@@ -22,7 +22,7 @@ function debundle($ea,$s) {
         $arr = explode(':',$n,2);
         $mid=$arr[0]; $kod=$arr[1];
         file_put_contents('msg/'.$mid, b64d($kod));
-        file_put_contents('echo/'.$ea, $mid.'\n', FILE_APPEND);
+        file_put_contents('echo/'.$ea, $mid."\n", FILE_APPEND);
     }
 }
 function walk_el($out) {
