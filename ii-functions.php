@@ -1,11 +1,9 @@
 <?php
 
 function checkHash($s) {
-	$filter="/[^a-zA-Z0-9]+/";
-	//if(!preg_match($filter,$s)) {
-	//	return false;
-	//} else return true;
-	return true;
+	if(!b64d($s)) {
+		return false;
+	} else return true;
 }
 
 function getmsg($t) { 
@@ -23,7 +21,7 @@ function b64c($s) {
 }
 
 function b64d($s) {
-	return base64_decode(str_pad(strtr($s, '-_', '+/'), strlen($s) % 4, '=', STR_PAD_RIGHT));
+	return base64_decode(str_pad(strtr($s, '-_', '+/'), strlen($s) % 4, '=', STR_PAD_RIGHT),true);
 }
 
 function hsh($s) {
@@ -122,10 +120,14 @@ $subj\n\n$msg";
 function savemsg($h,$e,$t) {
 	checkEcho($e);
 	if(checkHash($h)) {
-		$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
-		$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, "$h\n"); fclose($fp);
-		echo "message saved: ok\n";
-	} else echo "incorrect msgid";
+		if(!file_exists('msg/'.$h)) {
+			$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
+			$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, "$h\n"); fclose($fp);
+			echo "message saved: ok\n";
+		} else {
+			echo "error: this message exists\n";
+		}
+	} else echo "error: incorrect msgid\n";
 }
 
 ?>
