@@ -1,7 +1,14 @@
 <?php
 require("ii-functions.php");
 
-$cfg=explode("\n", file_get_contents("config.cfg"));
+$cfg=[
+	"noauth",
+	"http://51t.ru/",
+	"ii.about.2014",
+	"ii.test.2014",
+	"ii.dev.2014",
+	"im.1404"
+];
 
 function getf($l) {
 	echo "fetch $l";
