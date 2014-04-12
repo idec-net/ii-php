@@ -15,8 +15,12 @@ function getf($l) {
 	return file_get_contents($l);
 }
 function get_echoarea($name) {
-	if(!file_exists("echo/".$name)) touch("echo/".$name);
-	return explode("\n", file_get_contents("echo/".$name));
+	if(!file_exists("echo/".$name)) {
+		touch("echo/".$name);
+		return [];
+	} else {
+		return explode("\n", file_get_contents("echo/".$name));
+	}
 }
 function sep($l, $step=20) {
 	for($x=0;$x<count($l);$x+=$step) {
@@ -54,7 +58,8 @@ function parse() {
         $dllist=[];
         foreach($el[$ea] as $x) {
 			$search=array_search($x, $myel);
-        	if(!$search && $search!==0) {
+			$len=count($myel);
+        	if((!$search && $search!==0) xor (count($el[$ea])==1)) {
         		$dllist[]=$x;
         	}
         }
