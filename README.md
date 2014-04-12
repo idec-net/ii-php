@@ -6,7 +6,7 @@ ii - это русская фидообразная сеть для обмена
 Выглядеть это будет примерно так:  
 ```php
 include("ii-functions.php");
-msg\_to\_ii($topicid."2014",$message,$usersent,"myforum, 1",time(),$userget,$subject,"");
+msg_to_ii($topicid."2014",$message,$usersent,"myforum, 1",time(),$userget,$subject,"");
 //$usersent - пользователь, отправивший сообщение, а $userget - его получивший.
 ```
 Синхронизация
