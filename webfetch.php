@@ -11,7 +11,7 @@ $cfg=[
 ];
 
 function getf($l) {
-	echo "fetch $l";
+	echo "fetch $l\n";
 	return file_get_contents($l);
 }
 function get_echoarea($name) {
@@ -53,7 +53,8 @@ function parse() {
         $myel = array_unique(get_echoarea($ea));
         $dllist=[];
         foreach($el[$ea] as $x) {
-        	if(!array_search($x, $myel)) {
+			$search=array_search($x, $myel);
+        	if(!$search && $search!==0) {
         		$dllist[]=$x;
         	}
         }
