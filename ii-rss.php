@@ -75,6 +75,7 @@ function ii_post($item,$echo) {
 	$message=trim(strip_tags($message));
 	$message=html_entity_decode($message, ENT_QUOTES, 'UTF-8');
 	$message=str_replace("\n\n","",$message);
+	$message.="\nСсылка: ".$item->link;
 	
 	if (count($message)<$limit) {
 		echo "Сохранение статьи '".$subject."'\n";
