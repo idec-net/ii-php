@@ -38,8 +38,6 @@ function checkEcho($echo) {
 
 function pointSend($msg,$authname,$addr) {
 	$goodmsg=explode("\n",b64d($msg));
-
-	$msgid=hsh($msg);
 	
 	$echo=$goodmsg[0];
 	checkEcho($echo);
@@ -48,11 +46,10 @@ function pointSend($msg,$authname,$addr) {
 	$subj=$goodmsg[2];
 	$rep=$goodmsg[4];
 	$addr="mira, ".$addr;
-	$repto="";
 	$time=time();
+	$norep=0;
 
 	$othermsg="";
-	$msgwrite="";
 
 	for($i=5;$i<count($goodmsg);$i++) {
 		if($i==(count($goodmsg)-1)) {
@@ -61,37 +58,27 @@ function pointSend($msg,$authname,$addr) {
 			$othermsg.=$goodmsg[$i]."\n";
 		}
 	}
-	if(count($othermsg)>64099) die("error:msg big!");
 
 	if(substr($rep,0,7)=="@repto:") {
 		$repto=substr($rep,7);
+	} else {
+		$repto="";
 	}
 	
-	if($repto) {
-		$msgwrite.="ii/ok/repto/$repto\n";
-	} else {
-		$msgwrite.="ii/ok\n";
+	if(!$repto) {
 		$norep=1;
 	}
 
-	$msgwrite.="$echo
-$time
-$authname
-$addr
-$receiver
-$subj\n\n";
-
-	if(!$norep) {
-		$msgwrite.=$othermsg;
-	} else {
-		$msgwrite.=$rep."\n".$othermsg;
+	if($norep) {
+		if(!empty($othermsg)) {
+			$othermsg=$rep."\n".$othermsg;
+		} else {
+			$othermsg=$rep;
+		}
 	}
 
-	@$echofile=fopen("echo/".$echo,"a");
-	@fputs($echofile,$msgid."\n"); fclose($echofile);
-	@$msgfile=fopen("msg/".$msgid,"w");
-	@fputs($msgfile,$msgwrite); fclose($msgfile);
-	echo "msg ok:".$msgid." <a href='/$echo'>$echo</a>";
+	$sent=msg_to_ii($echo,$othermsg,$authname,$addr,$time,$receiver,$subj,$repto);
+	echo "msg ok:".$sent." <a href='/$echo'>$echo</a>";
 }
 
 function msg_to_ii($echo,$msg,$username,$addr,$time,$receiver,$subj,$repto) {
@@ -100,20 +87,23 @@ function msg_to_ii($echo,$msg,$username,$addr,$time,$receiver,$subj,$repto) {
 		$repto="/repto/".$repto;
 	}
 
-	$msgwrite.="ii/ok$repto
+	$msgwrite="ii/ok$repto
 $echo
 $time
 $username
 $addr
 $receiver
 $subj\n\n$msg";
+	if(count($msgwrite)>64099) die("error:msg big!");
 
 	$msgid=hsh($msgwrite);
 
 	@$echofile=fopen("echo/".$echo,"a");
 	@fputs($echofile,$msgid."\n"); fclose($echofile);
 	@$msgfile=fopen("msg/".$msgid,"w");
-	@fputs($msgfile,$msgwrite); fclose($msgfile);
+	@fputs($msgfile,$msgwrite);
+	
+	fclose($msgfile);
 	return $msgid;
 }
 

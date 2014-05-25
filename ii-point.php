@@ -50,7 +50,10 @@ if (!empty($_POST['upush'])) {
 }
 
 if ($opts[1] == 'u' and $opts[2] == 'point') {
-	if ($opts[3] && $opts[4]) {
+	$error=0;
+	if (isset($opts[3]) && isset($opts[4]) &&
+		$opts[3] && $opts[4]
+	) {
 		$au=$opts[3];
 		$ms=$opts[4];
 	} elseif($_POST['pauth'] && $_POST['tmsg']) {
