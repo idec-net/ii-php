@@ -1,4 +1,5 @@
 <?php
+include_once("config.php");
 
 function checkHash($s) {
 	if(!b64d($s)) {

@@ -7,13 +7,6 @@ $opts = explode('/',$q);
 $auth=0;
 $authname=0;
 
-$nodecode="";
-$parr=[
-	["","root"],
-	["","point1"]
-];
-
-
 if ($opts[1] == 'e') {
 	echo getecho($opts[2]);
 } # e

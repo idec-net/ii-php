@@ -1,15 +1,6 @@
 <?php
 require("ii-functions.php");
 
-$cfg=[
-	"noauth",
-	"http://51t.ru/",
-	"ii.about.2014",
-	"ii.test.2014",
-	"ii.dev.2014",
-	"im.1404"
-];
-
 function getf($l) {
 	echo "fetch $l\n";
 	return file_get_contents($l);
@@ -29,46 +20,48 @@ function sep($l, $step=20) {
 }
 
 function debundle($ea,$s) {
-    foreach(explode("\n",$s) as $n) {
-        $arr = explode(':',$n,2);
-        $mid=$arr[0]; $kod=$arr[1];
-        file_put_contents('msg/'.$mid, b64d($kod));
-        file_put_contents('echo/'.$ea, $mid."\n", FILE_APPEND);
-    }
+	foreach(explode("\n",$s) as $n) {
+		$arr = explode(':',$n,2);
+		$mid=$arr[0]; $kod=$arr[1];
+		if ($mid!=="\n" & $mid !== "") {
+			file_put_contents('msg/'.$mid, b64d($kod));
+			file_put_contents('echo/'.$ea, $mid."\n", FILE_APPEND);
+		}
+	}
 }
 function walk_el($out) {
-    $ea = ''; $el = [];
-    foreach(explode("\n", $out) as $n) {
-        if (substr_count($n, ".")>0) {
-            $ea = $n;
-            $el[$ea] = [];
-        }
-        elseif($ea) {
-            $el[$ea][]=$n;
-        }
-    }
-    return $el;
+	$ea = ''; $el = [];
+	foreach(explode("\n", $out) as $n) {
+		if (substr_count($n, ".")>0) {
+			$ea = $n;
+			$el[$ea] = [];
+		}
+		elseif($ea) {
+			$el[$ea][]=$n;
+		}
+	}
+	return $el;
 }
 function parse() {
-    global $cfg;
-    $out = getf($cfg[1]."u/e/".implode("/", array_slice($cfg, 2)));
-    $el = walk_el($out);
-    foreach(array_slice($cfg, 2) as $ea) {
-        $myel = array_unique(get_echoarea($ea));
-        $dllist=[];
-        foreach($el[$ea] as $x) {
+	global $cfg;
+	$out = getf($cfg[1]."u/e/".implode("/", array_slice($cfg, 2)));
+	$el = walk_el($out);
+	foreach(array_slice($cfg, 2) as $ea) {
+		$myel = array_unique(get_echoarea($ea));
+		$dllist=[];
+		foreach($el[$ea] as $x) {
 			$search=array_search($x, $myel);
 			$len=count($myel);
-        	if((!$search && $search!==0) xor (count($el[$ea])==1)) {
-        		$dllist[]=$x;
-        	}
-        }
-        
-        foreach(sep($dllist,40) as $dl) {
-            $s = getf($cfg[1]."u/m/".implode("/",$dl));
-            debundle($ea,$s);
-        }
-    }
+			if((!$search && $search!==0) xor (count($el[$ea])==1)) {
+				$dllist[]=$x;
+			}
+		}
+		
+		foreach(sep($dllist,40) as $dl) {
+			$s = getf($cfg[1]."u/m/".implode("/",$dl));
+			debundle($ea,$s);
+		}
+	}
 }
 parse();
 ?>

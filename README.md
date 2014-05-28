@@ -22,4 +22,5 @@ require("ii-rss.php");
 ii_rss("feedname", "http://your-feed/adress", "echoname.2014");
 
 ?>
-```и поместить его вызов в cron.
+```
+и поместить его вызов в cron.
