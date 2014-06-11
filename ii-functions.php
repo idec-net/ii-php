@@ -109,14 +109,15 @@ $subj\n\n$msg";
 }
 
 function savemsg($h,$e,$t) {
+	global $savemsgOverride;
 	checkEcho($e);
 	if(checkHash($h)) {
-		if(!file_exists('msg/'.$h)) {
+		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
 			$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
 			$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, "$h\n"); fclose($fp);
 			echo "message saved: ok\n";
 		} else {
-			echo "error: this message exists\n";
+			echo "error: '".$h."' this message exists\n";
 		}
 	} else echo "error: incorrect msgid\n";
 }

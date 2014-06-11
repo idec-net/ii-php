@@ -2,7 +2,7 @@
 require("ii-functions.php");
 
 function getf($l) {
-	echo "fetch $l\n";
+	echo "fetch '$l'\n";
 	return file_get_contents($l);
 }
 function get_echoarea($name) {
@@ -24,8 +24,7 @@ function debundle($ea,$s) {
 		$arr = explode(':',$n,2);
 		$mid=$arr[0]; $kod=$arr[1];
 		if ($mid!=="\n" & $mid !== "") {
-			file_put_contents('msg/'.$mid, b64d($kod));
-			file_put_contents('echo/'.$ea, $mid."\n", FILE_APPEND);
+			savemsg($mid,$ea,b64d($kod));
 		}
 	}
 }
@@ -42,11 +41,10 @@ function walk_el($out) {
 	}
 	return $el;
 }
-function parse() {
-	global $cfg;
-	$out = getf($cfg[1]."u/e/".implode("/", array_slice($cfg, 2)));
+function fetch_messages($cfg) {
+	$out = getf($cfg[0]."u/e/".implode("/", array_slice($cfg, 1)));
 	$el = walk_el($out);
-	foreach(array_slice($cfg, 2) as $ea) {
+	foreach(array_slice($cfg, 1) as $ea) {
 		$myel = array_unique(get_echoarea($ea));
 		$dllist=[];
 		foreach($el[$ea] as $x) {
@@ -58,10 +56,10 @@ function parse() {
 		}
 		
 		foreach(sep($dllist,40) as $dl) {
-			$s = getf($cfg[1]."u/m/".implode("/",$dl));
+			$s = getf($cfg[0]."u/m/".implode("/",$dl));
+			echo $ea."\n";
 			debundle($ea,$s);
 		}
 	}
 }
-parse();
 ?>

@@ -86,7 +86,7 @@ function ii_post($item,$echo) {
 
 		for($i=0;$i<$lenn;$i++) {
 			$i1=$i+1;
-			echo "Сохранение статьи '".$subject."' [$i1/$lenn]\n";
+			echo "Article saved: '".$subject."' [$i1/$lenn]\n";
 			msg_to_ii($echo,$message[$i],$point,"mira, 1",time(),"All",$subject." [$i1/$lenn]","");
 		}
 	}

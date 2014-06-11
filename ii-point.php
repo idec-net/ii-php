@@ -31,14 +31,14 @@ if ($opts[1] == 'u' and $opts[2] == 'e') {
 
 if (!empty($_POST['upush'])) {
 	$upush = $_POST['upush']; $nauth = $_POST['nauth']; $echoarea = $_POST['echoarea'];
-	if (empty($nodecode) or ($auth != $nodecode)) {
+	if (empty($pushpassword) or ($auth != $pushpassword)) {
 		die('auth error');
 	}
 	$lines = explode("\n",$upush);
 
 	for ($x=0;$x<count($lines);$x++) {
 		$a = explode(":",$lines[$x]);
-		savemsg($a[0],$echoarea,base64_decode($a[1]));
+		savemsg($a[0],$echoarea,b64d($a[1]));
 	}
 }
 
