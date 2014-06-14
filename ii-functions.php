@@ -110,21 +110,16 @@ $subj\n\n$msg";
 
 function validatemsg($m) {
 	$msgparts = explode("\n", $m);
-	if (count($msgparts) < 9))
-		return false;
-	$tags = $msgparts[0];
-	$area = $msgparts[1];
-	$date = $msgparts[2];
-	$from = $msgparts[3];
-	$addr = $msgparts[4];
-	$to = $msgparts[5];
-	$subj = $msgparts[6];
-	$mesg = join("\n", array_slice($msgparts, 8));
-	if (strlen($area) == 0 || strlen($date) == 0 ||
-	  strlen($from) == 0 || strlen($to) == 0 ||
-	  strlen($subj) == 0 || strlen($mesg) == 0)
-		return false;
+	if (count($msgparts) < 9) return false;
+
+	$mesg = implode("\n", array_slice($msgparts, 8));
 	
+	for($i=0;$i<7;$i++) {
+		if(strlen($msgparts[$i])==0) {
+			return false;
+		}
+	}
+	if(strlen($mesg)==0) return false;
 	return true;
 }
 
