@@ -108,8 +108,32 @@ $subj\n\n$msg";
 	return $msgid;
 }
 
+function validatemsg($m) {
+	$msgparts = explode("\n", $m);
+	if (count($msgparts) < 9))
+		return false;
+	$tags = $msgparts[0];
+	$area = $msgparts[1];
+	$date = $msgparts[2];
+	$from = $msgparts[3];
+	$addr = $msgparts[4];
+	$to = $msgparts[5];
+	$subj = $msgparts[6];
+	$mesg = join("\n", array_slice($msgparts, 8));
+	if (strlen($area) == 0 || strlen($date) == 0 ||
+	  strlen($from) == 0 || strlen($to) == 0 ||
+	  strlen($subj) == 0 || strlen($mesg) == 0)
+		return false;
+	
+	return true;
+}
+
 function savemsg($h,$e,$t) {
 	global $savemsgOverride;
+	if (!validatemsg($t)) {
+		echo "invalid message: ".$h."\n";
+		return;
+	}
 	checkEcho($e);
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
