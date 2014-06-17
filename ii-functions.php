@@ -1,5 +1,6 @@
 <?php
 include_once("config.php");
+date_default_timezone_set("UTC");
 
 function checkHash($s) {
 	if(!b64d($s)) {
@@ -34,14 +35,15 @@ function hsh($s) {
 
 function checkEcho($echo) {
 	$filter='/^[a-z0-9_!.-]{1,60}\.\d{1,9}$/';
-	if(!preg_match($filter,$echo)) die("error: wrong echo!");
+	if(!preg_match($filter,$echo)) return false;
+	else return true;
 }
 
 function pointSend($msg,$authname,$addr) {
 	$goodmsg=explode("\n",b64d($msg));
 	
 	$echo=$goodmsg[0];
-	checkEcho($echo);
+	if(!checkEcho($echo)) die("error: wrong echo");
 	
 	$receiver=$goodmsg[1];
 	$subj=$goodmsg[2];
@@ -83,7 +85,7 @@ function pointSend($msg,$authname,$addr) {
 }
 
 function msg_to_ii($echo,$msg,$username,$addr,$time,$receiver,$subj,$repto) {
-	checkEcho($echo);
+	if(!checkEcho($echo)) die("wrong echo");
 	if($repto) {
 		$repto="/repto/".$repto;
 	}
@@ -129,7 +131,8 @@ function savemsg($h,$e,$t) {
 		echo "invalid message: ".$h."\n";
 		return;
 	}
-	checkEcho($e);
+	if(!checkEcho($e)) echo "error: wrong echo ".$e."\n"; return;
+
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
 			$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);

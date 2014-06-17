@@ -1,9 +1,7 @@
 <?php
-
 require("ii-functions.php");
 
 define('CWD', getcwd()."/feeds");
-date_default_timezone_set("Asia/Irkutsk");
 $limit=63000;
 
 $default_template='<?xml version="1.0" encoding="UTF-8"?>

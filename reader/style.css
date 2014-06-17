@@ -1,0 +1,101 @@
+body {
+	font-family:Helvetica,Ubuntu,Arial,Sans;
+	font-size:17px;
+	background:linear-gradient(#efeeef, #ffffff);
+	min-height:100%;
+}
+/* blocks */
+
+#content {
+	width:80%;
+	margin:0 auto;
+	text-align:center;
+}
+
+div.links {
+	margin-top:-8px;
+	background-color:black;
+	width:100%;
+	min-height:40px;
+	overflow:auto;
+	border-radius: 2px 2px 0px 0px;
+	box-shadow: 0px 0px 3px black;
+}
+
+#main {
+	text-decoration:none;
+	float:left;
+	line-height:38px;
+	color:white;
+	font-size:15px;
+	font-weight:bold;
+	text-shadow:0px 0px 5px #555555;
+}
+
+.pic {
+	height:28px;
+	width:27px;
+	padding:5px;
+	float:left;
+}
+.message, .message-with-repto {
+	background-color: white;
+	border: 1px solid #aaaadd;
+	border-radius: 5px;
+	text-align: left;
+	margin-top: 10px;
+	padding: 10px;
+}
+
+/* texts */
+
+a:hover {
+	color:#ff3344;
+}
+.links a, .links a:visited {
+	text-decoration:none;
+	color:white;
+	float:right;
+	border:1px solid black;
+	padding:0px 8px 0px 8px;
+	line-height:38px;
+	border-radius:2px;
+	min-width:100px;
+	text-align:center;
+	font-size:16px;
+	outline:none;
+}
+.links a:hover {
+	border:1px solid #999999;
+	background-color: rgba(255,255,255,0.3)
+}
+.links a:active {
+	box-shadow: 0px 0px 8px #888888 inset;
+}
+a {
+	color:#2233ff;
+	text-decoration:none;
+}
+h1,h2 {
+	text-shadow: 2px 2px 8px #aaaaaa;
+}
+.message {
+	background: linear-gradient(#ecfaff, #f4fcff, #ecfaff);
+}
+.subj {
+	color: #0E5C81 !important;
+}
+a.subj {
+	text-decoration:underline;
+}
+.sender {
+	float: right;
+	font-weight: bold;
+}
+.date {
+	border: 1px solid #888888;
+	background: linear-gradient(#eeeeee,#fefefe,#eeeeee);
+	padding: 2px;
+	border-radius: 2px;
+	font-size: 14px;
+}
