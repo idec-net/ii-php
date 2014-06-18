@@ -131,8 +131,10 @@ function savemsg($h,$e,$t) {
 		echo "invalid message: ".$h."\n";
 		return;
 	}
-	if(!checkEcho($e)) echo "error: wrong echo ".$e."\n"; return;
-
+	if(!checkEcho($e)) {
+		echo "error: wrong echo ".$e."\n"; 
+		return;
+	}
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
 			$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
