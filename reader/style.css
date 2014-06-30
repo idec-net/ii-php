@@ -99,3 +99,6 @@ a.subj {
 	border-radius: 2px;
 	font-size: 14px;
 }
+ul {
+	list-style-type: none;
+}

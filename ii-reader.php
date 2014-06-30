@@ -96,7 +96,7 @@ class IIReader extends IIFrontend {
 			$ret.= "<span class='subj'>".$message['subj']."</span>";
 		}
 		$ret.= "<a name='".$msgid."'>&nbsp;&nbsp;</a>";
-		$ret.= "<span class='date'>".date("Y-m-d h:i:s", $message['time']). "</span>";
+		$ret.= "<span class='date'>".date("Y-m-d H:i:s", $message['time']). "</span>";
 		$ret.= "<span class='sender'>".$message['from']." (".$message['addr'].") -> ".$message['to']."</span>\n";
 		$ret.="<br /><br /><span class='msgtext'>".$message['msg']."</span>\n";
 
