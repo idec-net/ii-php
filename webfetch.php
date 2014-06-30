@@ -1,65 +1,47 @@
 <?php
+header('content-type: text/plain; charset=utf-8');
 require("ii-functions.php");
 
-function getf($l) {
-	echo "fetch '$l'\n";
-	return file_get_contents($l);
+function getfile($add) {
+	echo "fetch ".$add."\n";
+	return file_get_contents($add);
 }
-function get_echoarea($name) {
-	if(!file_exists("echo/".$name)) {
-		touch("echo/".$name);
-		return [];
-	} else {
-		return explode("\n", file_get_contents("echo/".$name));
-	}
-}
-function sep($l, $step=20) {
-	for($x=0;$x<count($l);$x+=$step) {
-		yield array_slice($l,$x,$x+$step);
+function getLocalEcho($echo) {
+	if(!file_exists("echo/".$echo)) return [];
+	else {
+		$file=file_get_contents("echo/".$echo);
+		$arr=explode("\n",$file);
+		return $arr;
 	}
 }
 
-function debundle($ea,$s) {
-	foreach(explode("\n",$s) as $n) {
-		$arr = explode(':',$n,2);
-		$mid=$arr[0]; $kod=$arr[1];
-		if ($mid!=="\n" & $mid !== "") {
-			savemsg($mid,$ea,b64d($kod));
-		}
-	}
-}
-function walk_el($out) {
-	$ea = ''; $el = [];
-	foreach(explode("\n", $out) as $n) {
-		if (substr_count($n, ".")>0) {
-			$ea = $n;
-			$el[$ea] = [];
-		}
-		elseif($ea) {
-			$el[$ea][]=$n;
-		}
-	}
-	return $el;
-}
-function fetch_messages($cfg) {
-	$out = getf($cfg[0]."u/e/".implode("/", array_slice($cfg, 1)));
-	$el = walk_el($out);
-	foreach(array_slice($cfg, 1) as $ea) {
-		$myel = array_unique(get_echoarea($ea));
-		$dllist=[];
-		foreach($el[$ea] as $x) {
-			$search=array_search($x, $myel);
-			$len=count($myel);
-			if((!$search && $search!==0) xor (count($el[$ea])==1)) {
-				$dllist[]=$x;
+function fetch_messages($config) {
+	$echoesToFetch=array_slice($config,1);
+	$adress=$config[0];
+
+	foreach($echoesToFetch as $echo) {
+		$localMessages=getLocalEcho($echo);
+
+		$remoteMessages=array_slice(explode("\n",getfile($adress."u/e/$echo")),1);
+
+		$difference=array_diff($remoteMessages, $localMessages);
+		$difference2d=array_chunk($difference, 20);
+		
+		foreach ($difference2d as $diff) {
+			echo $echo."\n";
+			$impldifference=implode("/",$diff);
+			$fullbundle=getfile($adress."u/m/$impldifference");
+	
+			$bundles=explode("\n",$fullbundle);
+			foreach($bundles as $bundle) {
+				$arr=explode(":",$bundle);
+				if(isset($arr[1])) {
+					$msgid=$arr[0]; $message=b64d($arr[1]);
+					savemsg($msgid, $echo, $message);
+				}
 			}
 		}
-		
-		foreach(sep($dllist,40) as $dl) {
-			$s = getf($cfg[0]."u/m/".implode("/",$dl));
-			echo $ea."\n";
-			debundle($ea,$s);
-		}
 	}
 }
+
 ?>
