@@ -19,6 +19,7 @@ class IIFrontend {
 		} else {
 			$meta['repto']=false;
 		}
+		$meta['echo']=$msg[1];
 		$meta['time']=$msg[2];
 		$meta['from']=$msg[3];
 		$meta['addr']=$msg[4];
