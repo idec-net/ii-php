@@ -37,22 +37,29 @@ class IIReader extends IIFrontend {
 		parent::__construct($echoareas,"echo/");
 		$this->onPage=$onpage;
 
+		$readertop=file_get_contents("reader/reader-top.html");
+		$listtop=file_get_contents("reader/list-top.html");
 		$htmlbottom=file_get_contents("reader/reader-bottom.html");
-
-		if(!$this->userSent("echoname")) {
-			$htmltop=file_get_contents("reader/list-top.html");
-			$htmltop=str_replace("{header}","онлайн читалка",$htmltop);
-			echo $htmltop;
-
-			$this->printEchos();
-		}
-		else {
-			$htmltop=file_get_contents("reader/reader-top.html");
+		
+		if ($this->userSent("echoname")) {
 			$echo=$this->userSent("echoname");
-			$htmltop=str_replace("{header}",$echo,$htmltop);
+			$htmltop=str_replace("{header}",$echo,$readertop);
 			echo $htmltop;
 
 			$this->printMsgs($echo);
+		} elseif ($this->userSent("msgid")) {
+			$msgid=$this->userSent("msgid");
+			$echo=$this->getMessageArray($msgid)['echo'];
+
+			$htmltop=str_replace("{header}","<a href='?echo=$echo'>$echo</a>",$readertop);
+			echo $htmltop;
+
+			echo $this->printMsg($msgid);
+		} else {
+			$htmltop=str_replace("{header}","онлайн читалка",$listtop);
+			echo $htmltop;
+
+			$this->printEchos();
 		}
 		echo $htmlbottom;
 	}
@@ -75,7 +82,7 @@ class IIReader extends IIFrontend {
 			!empty ($_GET['msgid'])
 		) {
 			$usersent="msgid";
-			$ret=$_GET['echo'];
+			$ret=$_GET['msgid'];
 		}
 		else {
 			$usersent=null;
@@ -93,9 +100,9 @@ class IIReader extends IIFrontend {
 			$ret.= "<a class='subj' href='#".$message['repto']."'>".$message['subj']."</a> ";
 		} else {
 			$ret.= "<div class='message'>";
-			$ret.= "<span class='subj'>".$message['subj']."</span>";
+			$ret.= "<span class='subj'>".$message['subj']."</span> ";
 		}
-		$ret.= "<a name='".$msgid."'>&nbsp;&nbsp;</a>";
+		$ret.= "<a name='".$msgid."' href='?msgid=$msgid'>#&nbsp;&nbsp;</a>";
 		$ret.= "<span class='date'>".date("Y-m-d H:i:s", $message['time']). "</span>";
 		$ret.= "<span class='sender'>".$message['from']." (".$message['addr'].") -> ".$message['to']."</span>\n";
 		$ret.="<br /><br /><span class='msgtext'>".$message['msg']."</span>\n";
