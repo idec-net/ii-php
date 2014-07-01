@@ -162,6 +162,7 @@ function savemsg($h,$e,$t) {
 	}
 	if(isBlackListed($h)) {
 		echo "error: msgid is blacklisted: ".$h."\n";
+		return;
 	}
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
