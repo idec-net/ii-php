@@ -1,6 +1,7 @@
 <?php
 include_once("config.php");
 date_default_timezone_set("UTC");
+$blacklist=getBlackList();
 
 function checkHash($s) {
 	if(!b64d($s)) {
@@ -10,12 +11,36 @@ function checkHash($s) {
 
 function getmsg($t) { 
 	$t = preg_replace("/[^a-zA-Z0-9]+/", "", $t); 
-	return @file_get_contents ("msg/$t");
+	if(!isBlackListed($t)) {
+		return @file_get_contents ("msg/$t");
+	}
+	else return "";
+}
+
+function getBlackList() {
+	return file("blacklist.txt");
+}
+
+function isBlackListed($msgid) {
+	global $blacklist;
+
+	if(in_array($msgid, $blacklist)) {
+		return true;
+	} else return false;
+}
+
+function applyBlacklist($echo) {
+	global $blacklist;
+
+	foreach($blacklist as $msgid) {
+		$echo=str_replace($msgid."\n","",$echo);
+	}
+	return $echo;
 }
 
 function getecho($t) { 
 	$t = preg_replace("/[^a-z0-9!_.-]+/", "", $t); 
-	return @file_get_contents ("echo/$t");
+	return applyBlackList(@file_get_contents ("echo/$t"));
 }
 
 function b64c($s) {
@@ -135,6 +160,9 @@ function savemsg($h,$e,$t) {
 		echo "error: wrong echo ".$e."\n"; 
 		return;
 	}
+	if(isBlackListed($h)) {
+		echo "error: msgid is blacklisted: ".$h."\n";
+	}
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
 			$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
@@ -145,5 +173,4 @@ function savemsg($h,$e,$t) {
 		}
 	} else echo "error: incorrect msgid\n";
 }
-
 ?>
