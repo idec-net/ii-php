@@ -174,4 +174,22 @@ function savemsg($h,$e,$t) {
 		}
 	} else echo "error: incorrect msgid\n";
 }
+
+function displayEchoList($echos=false) {
+	header('content-type: text/plain; charset=utf-8');
+	if(!$echos) {
+		global $echolist;
+		foreach($echolist as $echo) {
+			$countMessages=count(explode("\n",getecho($echo[0])));
+			echo $echo[0].":".$countMessages.":".$echo[1]."\n";
+		}
+	} else {
+		foreach($echos as $echo) {
+			if(checkEcho($echo)) {
+				echo $echo.":".count(explode("\n",getecho($echo)))."\n";
+			}
+		}
+	}
+}
+
 ?>
