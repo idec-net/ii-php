@@ -1,8 +1,35 @@
 <?php
 require("ii-frontend.php");
 
-// постраничная навигация
+//поддержка ссылок и разметки
+function reparse($string) {
+	$pre_flag = false;
+	$string = explode ("\n", $string);
+	for ($i = 0; $i < count ($string); ++$i) {
+		$string[$i] = preg_replace("/([^\w\/])(www\.[a-z0-9\-]+\.[a-z0-9\-]+)/i", "$1http://$2",$string[$i]);
+		$string[$i] = preg_replace("/([\w]+:\/\/[\w-?&;#~=\.\/\@]+[\w\/])/i","<a target=\"_blank\" href=\"$1\">$1</a>",$string[$i]);
+		$string[$i] = preg_replace("/([\w-?&;#~=\.\/]+\@(\[?)[a-zA-Z0-9\-\.]+\.([a-zA-Z]{2,3}|[0-9]{1,3})(\]?))/i","<a href=\"mailto:$1\">$1</a>",$string[$i]);
+		$echo_check = preg_replace("/(.*)\<a target=\"_blank\" href=\"ii:\/\/(.+?)\"\>(.+?)\<\/a\>(.*)/", "$2", $string[$i]);
+		if (checkEcho($echo_check)) {
+			$string[$i] = preg_replace("/target=\"_blank\" href=\"ii:\/\/(.+?)\"/s", "class=\"iilink\" href=\"ii-reader.php?echo=$1\"", $string[$i]);
+		} else {
+			$string[$i] = preg_replace("/target=\"_blank\" href=\"ii:\/\/(.+?)\"/s", "class=\"iilink\" href=\"ii-reader.php?msgid=$1\"", $string[$i]);
+		}
+		if (preg_match("/^====\<br \/\>$/", $string[$i])) {
+			if (!$pre_flag) {
+				$pre_flag = true;
+				$string[$i] = preg_replace("/====/", "<pre>====", $string[$i]);
+			} else {
+				$pre_flag = false;
+				$string[$i] = preg_replace("/====/", "====</pre>", $string[$i]);
+			}
+		}
+	}
+	$string = implode($string);
+	return $string;
+}
 
+//постраничная навигация
 function lister($arr, $pnumber, $none, $ii_reader,$echoarea) {
 	$echo="";
 	$myaddr="?echo=".$echoarea;
@@ -64,11 +91,6 @@ class IIReader extends IIFrontend {
 		echo $htmlbottom;
 	}
 
-	function checkLogin() {
-		if(isset($fucking_login)) return $fucking_login;
-		else return false;
-	}
-
 	function userSent($target) {
 		if (
 			isset($_GET['echo']) &&
@@ -105,7 +127,7 @@ class IIReader extends IIFrontend {
 		$ret.= "<a name='".$msgid."' href='?msgid=$msgid'>#&nbsp;&nbsp;</a>";
 		$ret.= "<span class='date'>".date("Y-m-d H:i:s", $message['time']). "</span>";
 		$ret.= "<span class='sender'>".$message['from']." (".$message['addr'].") -> ".$message['to']."</span>\n";
-		$ret.="<br /><br /><span class='msgtext'>".$message['msg']."</span>\n";
+		$ret.="<br /><br /><span class='msgtext'>".reparse($message['msg'])."</span>\n";
 
 		$ret.="</div>";
 		return $ret;
