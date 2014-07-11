@@ -3,6 +3,27 @@ include_once("config.php");
 date_default_timezone_set("UTC");
 $blacklist=getBlackList();
 
+function getBlackList() {
+	return file("blacklist.txt");
+}
+
+function isBlackListed($msgid) {
+	global $blacklist;
+
+	if(in_array($msgid."\n", $blacklist)) {
+		return true;
+	} else return false;
+}
+
+function applyBlacklist($echo) {
+	global $blacklist;
+
+	foreach($blacklist as $msgid) {
+		$echo=str_replace($msgid,"",$echo);
+	}
+	return $echo;
+}
+
 function checkHash($s) {
 	if(!b64d($s)) {
 		return false;
@@ -12,30 +33,9 @@ function checkHash($s) {
 function getmsg($t) { 
 	$t = preg_replace("/[^a-zA-Z0-9]+/", "", $t); 
 	if(!isBlackListed($t)) {
-		return @file_get_contents ("msg/$t");
+		return file_get_contents ("msg/$t");
 	}
 	else return "";
-}
-
-function getBlackList() {
-	return file("blacklist.txt");
-}
-
-function isBlackListed($msgid) {
-	global $blacklist;
-
-	if(in_array($msgid, $blacklist)) {
-		return true;
-	} else return false;
-}
-
-function applyBlacklist($echo) {
-	global $blacklist;
-
-	foreach($blacklist as $msgid) {
-		$echo=str_replace($msgid."\n","",$echo);
-	}
-	return $echo;
 }
 
 function getecho($t) { 
