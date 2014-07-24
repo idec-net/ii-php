@@ -8,7 +8,7 @@ $default_template='<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
 <item>
-<pubDate>'.date("r").'</pubDate>
+<guid>empty</guid>
 </item>
 </channel>
 </rss>';
@@ -27,7 +27,7 @@ class RssParser
 	}
 }
 
-function ii_rss($feedname,$adress,$echo) {
+function ii_rss($feedname,$adress,$echo,$include_link=true) {
 	global $default_template;
 
 	if(!file_exists(CWD."/".$feedname)) {
@@ -39,23 +39,23 @@ function ii_rss($feedname,$adress,$echo) {
 
 	$news=new RssParser(CWD."/".$feedname);
 	$news2=new RssParser(CWD."/".$feedname.'-new');
-	$first_date=strtotime($news->items[0]->pubDate);
 
 	$items=$news->items;
-	$itemsDates=array();
+	$itemsGuids=array();
 
 	foreach($items as $item) {
-		$itemsDates[]=strtotime($item->pubDate);
+		$itemsGuids[]=(string)$item->guid;
 	}
 
 	for($j=count($news2->items)-1;$j>=0;$j--) {
 		$item1=$news2->items[$j];
-		$loltime=strtotime($item1->pubDate);
-		if($loltime>$first_date) {
-			ii_post($item1,$echo);
+		$lolguid=(string)$item1->guid;
+		
+		if(!in_array($lolguid, $itemsGuids)) {
+			ii_post($item1,$echo,$include_link);
 		}
 	}
-	$item1=false;
+	unset($item1);
 	
 	copy(CWD."/".$feedname.'-new', CWD."/".$feedname);
 	
@@ -63,21 +63,41 @@ function ii_rss($feedname,$adress,$echo) {
 	unset($news2);
 }
 
-function ii_post($item,$echo) {
+function ii_post($item,$echo,$include_link=true) {
 	global $limit;
 
 	$point="Новостной_робот";
+	$adress="mira, 1";
+
 	$subject=$item->title;
 	$message=$item->description;
 
-	$message=trim(strip_tags($message));
 	$message=html_entity_decode($message, ENT_QUOTES, 'UTF-8');
-	$message=str_replace("\n\n","",$message);
-	$message.="\nСсылка: ".$item->link;
-	
+   	
+	$search = array ('/<script.*?>.*?<\/script>/si',  // Strip out javascript
+					'/<style.*?>.*?<\/style>/siU'   // Strip style tags proper
+					);
+
+	$message=preg_replace($search, "", $message);
+
+	$message=strip_tags($message, "<img><a>");
+
+    $message=preg_replace('/<a.*?href="(.*?)">(.*?)<\/a>/', ' [ \2 ]( \1 ) ', $message);
+    $message=preg_replace('/<img.*?src="(.*?)".*?>/', ' \1 ', $message);
+    $message=preg_replace('/\s\s+/', ' ', $message);
+
+	if($include_link) {
+		if((string)$item->guid["isPermaLink"]=="true") {
+			$link=$item->guid;
+		} else {
+			$link=$item->link;
+		}
+		$message.="\nСсылка: ".$link;
+	}
+
 	if (count($message)<$limit) {
-		echo "Сохранение статьи '".$subject."'\n";
-		msg_to_ii($echo,$message,$point,"mira, 1",time(),"All",$subject,"");
+		echo "Saving article '".$subject."'\n";
+		msg_to_ii($echo,$message,$point,$adress,time(),"All",$subject,"");
 	} else {
 		$message=str_split($message,$limit);
 		$lenn=count($message);
@@ -85,7 +105,7 @@ function ii_post($item,$echo) {
 		for($i=0;$i<$lenn;$i++) {
 			$i1=$i+1;
 			echo "Article saved: '".$subject."' [$i1/$lenn]\n";
-			msg_to_ii($echo,$message[$i],$point,"mira, 1",time(),"All",$subject." [$i1/$lenn]","");
+			msg_to_ii($echo,$message[$i],$point,$adress,time(),"All",$subject." [$i1/$lenn]","");
 		}
 	}
 }
