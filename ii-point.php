@@ -74,4 +74,16 @@ if ($opts[1] == 'u' and $opts[2] == 'point') {
 	else die('error: unknown');
 }
 
+if($opts[1] == 'list.txt' or ($opts[1] == 'x' and $opts[2] == 'echolist')) {
+	displayEchoList();
+}
+
+if($opts[1] == 'x' and $opts[2] == 't') {
+	$echos=[];
+	for ($x=3;$x<count($opts);$x++) {
+		$echos[]=$opts[$x];
+	}
+	displayEchoList($echos);
+}
+
 ?>
