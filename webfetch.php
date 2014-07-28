@@ -40,11 +40,11 @@ function fetch_messages($config) {
 	$adress=$config[0];
 
 	$echoBundle=getfile($adress."u/e/".implode("/",$echoesToFetch));
-	$remoteEchos2d=parseFullEchoList($echoBundle);
+	$remoteEchos2d=parseFullEchoList(applyBlackList($echoBundle));
 
 	foreach($echoesToFetch as $echo) {
 		$localMessages=getLocalEcho($echo);
-
+		
 		$remoteMessages=$remoteEchos2d[$echo];
 
 		$difference=array_diff($remoteMessages, $localMessages);

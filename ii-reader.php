@@ -136,12 +136,12 @@ class IIReader extends IIFrontend {
 		$arr=$this->echoes;
 		echo "<h3>Выберите эхоконференцию</h3>\n<ul>";
 		foreach($arr as $echo) {
-			if(!file_exists("echo/$echo")) {
+			if(!file_exists("echo/".$echo[0])) {
 				$countmsgs=0;
 			} else {
-				$countmsgs=count(file($this->echoesPath.$echo));
+				$countmsgs=count(file($this->echoesPath.$echo[0]));
 			}
-			echo "<li><a href='?echo=".$echo."'>".$echo."</a> - $countmsgs сообщений</li>";
+			echo "<li><a href='?echo=".$echo[0]."'>".$echo[0]."</a> - ".$echo[1]." - $countmsgs сообщений</li>";
 		}
 		echo "</ul>";
 	}
@@ -152,16 +152,5 @@ class IIReader extends IIFrontend {
 
 }
 
-$echoes=[
-	"im.100",
-	"ii.dev.14",
-	"lor-opennet.2014",
-	"obsd.rss.14",
-	"obsd.talk.14",
-	"game.rogue.14",
-	"ru.humor.14",
-	"vit01.2014"
-];
-
-$ii_reader=new IIReader($echoes,20);
+$ii_reader=new IIReader($echolist,20);
 ?>

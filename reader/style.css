@@ -101,4 +101,7 @@ a.subj {
 }
 ul {
 	list-style-type: none;
+	text-align: left;
+	width: 50%;
+	margin: 0 auto;
 }
