@@ -15,14 +15,37 @@ function getLocalEcho($echo) {
 	}
 }
 
+function parseFullEchoList($echobundle) {
+	$echos2d=array();
+	$echobundle=explode("\n",$echobundle);
+	$lastecho="";
+
+	for($i=0;$i<count($echobundle);$i++) {
+		if(!empty($echobundle[$i])) {
+			$search=strpos($echobundle[$i], ".");
+		
+			if($search===false) {
+				$echos2d[$lastecho][]=$echobundle[$i];
+			} else {
+				$lastecho=$echobundle[$i];
+				$echos2d[$lastecho]=array();
+			}
+		}
+	}
+	return $echos2d;
+}
+
 function fetch_messages($config) {
 	$echoesToFetch=array_slice($config,1);
 	$adress=$config[0];
 
+	$echoBundle=getfile($adress."u/e/".implode("/",$echoesToFetch));
+	$remoteEchos2d=parseFullEchoList($echoBundle);
+
 	foreach($echoesToFetch as $echo) {
 		$localMessages=getLocalEcho($echo);
 
-		$remoteMessages=array_slice(explode("\n",getfile($adress."u/e/$echo")),1);
+		$remoteMessages=$remoteEchos2d[$echo];
 
 		$difference=array_diff($remoteMessages, $localMessages);
 		$difference2d=array_chunk($difference, 20);
@@ -35,7 +58,7 @@ function fetch_messages($config) {
 			$bundles=explode("\n",$fullbundle);
 			foreach($bundles as $bundle) {
 				$arr=explode(":",$bundle);
-				if(isset($arr[1])) {
+				if(!empty($arr[0])) {
 					$msgid=$arr[0]; $message=b64d($arr[1]);
 					savemsg($msgid, $echo, $message);
 				}

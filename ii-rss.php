@@ -81,6 +81,7 @@ function ii_post($item,$echo,$include_link=true) {
 	$message=preg_replace($search, "", $message);
 
 	$message=strip_tags($message, "<img><a>");
+	$message=str_replace("\n", " ", $message);
 
     $message=preg_replace('/<a.*?href="(.*?)">(.*?)<\/a>/', ' [ \2 ]( \1 ) ', $message);
     $message=preg_replace('/<img.*?src="(.*?)".*?>/', ' \1 ', $message);
