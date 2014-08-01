@@ -9,32 +9,32 @@ $authname=0;
 
 if ($opts[1] == 'e') {
 	echo getecho($opts[2]);
-} # e
+}
 
 if ($opts[1] == 'm') {
 	echo getmsg($opts[2]);
-} # m
+}
 
 if ($opts[1] == 'u' and $opts[2] == 'm') {
 	for ($x=3;$x<count($opts);$x++) { 
 		$hash = base64_encode(getmsg($opts[$x]));
 		echo "$opts[$x]:$hash\n";
 	}
-} # um
+}
 
 if ($opts[1] == 'u' and $opts[2] == 'e') {
 	for ($x=3;$x<count($opts);$x++) { 
 		echo $opts[$x] . "\n";
 		echo getecho($opts[$x]);
 	}
-} # ue
+}
 
 if (!empty($_POST['upush'])) {
-	$upush = $_POST['upush']; $nauth = $_POST['nauth']; $echoarea = $_POST['echoarea'];
-	if (empty($pushpassword) or ($auth != $pushpassword)) {
+	$contents = $_POST['upush']; $nodeAuth = $_POST['nauth']; $echoarea = $_POST['echoarea'];
+	if (empty($pushpassword) or ($nodeAuth != $pushpassword)) {
 		die('auth error');
 	}
-	$lines = explode("\n",$upush);
+	$lines = explode("\n",$contents);
 
 	for ($x=0;$x<count($lines);$x++) {
 		$a = explode(":",$lines[$x]);
@@ -64,17 +64,16 @@ if ($opts[1] == 'u' and $opts[2] == 'point') {
 				break;
 			}
 		}
+		
 		if($auth and $authname) {
-			pointSend($ms,$authname,$addr);
+			pointSend($ms,$authname,$nodeName.", ".$addr);
+		} else {
+			die("error: no auth!");
 		}
-		else {
-			die("error:no auth!");
-		}
-	}
-	else die('error: unknown');
+	} else die('error: unknown');
 }
 
-if($opts[1] == 'list.txt' or ($opts[1] == 'x' and $opts[2] == 'echolist')) {
+if($opts[1] == 'list.txt') {
 	displayEchoList();
 }
 
@@ -84,6 +83,10 @@ if($opts[1] == 'x' and $opts[2] == 't') {
 		$echos[]=$opts[$x];
 	}
 	displayEchoList($echos);
+}
+
+if($opts[1] == 'x' and $opts[2] == 'small-echolist') {
+	displayEchoList($small=true);
 }
 
 ?>

@@ -4,15 +4,6 @@ require("ii-functions.php");
 define('CWD', getcwd()."/feeds");
 $limit=63000;
 
-$default_template='<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-<channel>
-<item>
-<guid>empty</guid>
-</item>
-</channel>
-</rss>';
-
 class RssParser
 {
 	public $obj;
@@ -21,44 +12,30 @@ class RssParser
 	function __construct($adress)
 	{
 		$this->obj=simplexml_load_file($adress);
-		$obj=$this->obj;
-
-		$this->items=$obj->channel->item;
+		$this->items=$this->obj->channel->item;
 	}
 }
 
 function ii_rss($feedname,$adress,$echo,$include_link=true) {
-	global $default_template;
-
 	if(!file_exists(CWD."/".$feedname)) {
-			file_put_contents(CWD."/".$feedname, $default_template);
+			touch(CWD."/".$feedname);
 			return;
 	}
 
-	file_put_contents(CWD."/".$feedname.'-new',file_get_contents($adress,false));
-
-	$news=new RssParser(CWD."/".$feedname);
-	$news2=new RssParser(CWD."/".$feedname.'-new');
-
-	$items=$news->items;
-	$itemsGuids=array();
-
-	foreach($items as $item) {
-		$itemsGuids[]=(string)$item->guid;
-	}
+	$news=file(CWD."/".$feedname);
+	$news2=new RssParser($adress);
+	$guids=fopen(CWD."/".$feedname, "a");
 
 	for($j=count($news2->items)-1;$j>=0;$j--) {
-		$item1=$news2->items[$j];
-		$lolguid=(string)$item1->guid;
+		$remguid=(string)$news2->items[$j]->guid;
 		
-		if(!in_array($lolguid, $itemsGuids)) {
-			ii_post($item1,$echo,$include_link);
+		if(!in_array($remguid."\n", $news)) {
+			ii_post($news2->items[$j],$echo,$include_link);
+			fputs($guids,$remguid."\n");
 		}
 	}
-	unset($item1);
-	
-	copy(CWD."/".$feedname.'-new', CWD."/".$feedname);
-	
+	fclose($guids);
+
 	unset($news);
 	unset($news2);
 }

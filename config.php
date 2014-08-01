@@ -2,6 +2,7 @@
 
 $pushpassword="";
 $savemsgOverride=false; //do Not set to true without need
+$nodeName="lenina"; //message fingerprint for your ii node
 
 $parr=[
 	["","root"],

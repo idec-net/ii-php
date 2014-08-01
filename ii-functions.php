@@ -73,7 +73,6 @@ function pointSend($msg,$authname,$addr) {
 	$receiver=$goodmsg[1];
 	$subj=$goodmsg[2];
 	$rep=$goodmsg[4];
-	$addr="mira, ".$addr;
 	$time=time();
 	$norep=0;
 
@@ -103,6 +102,10 @@ function pointSend($msg,$authname,$addr) {
 		} else {
 			$othermsg=$rep;
 		}
+	}
+
+	if(empty($subj) or empty($othermsg)) {
+		die("error: empty message or subject!");
 	}
 
 	$sent=msg_to_ii($echo,$othermsg,$authname,$addr,$time,$receiver,$subj,$repto);
@@ -175,13 +178,19 @@ function savemsg($h,$e,$t) {
 	} else echo "error: incorrect msgid\n";
 }
 
-function displayEchoList($echos=false) {
+function displayEchoList($echos=false, $small=false) {
 	header('content-type: text/plain; charset=utf-8');
 	if(!$echos) {
 		global $echolist;
-		foreach($echolist as $echo) {
-			$countMessages=count(explode("\n",getecho($echo[0])));
-			echo $echo[0].":".$countMessages.":".$echo[1]."\n";
+		if(!$small) {
+			foreach($echolist as $echo) {
+				$countMessages=count(explode("\n",getecho($echo[0])));
+				echo $echo[0].":".$countMessages.":".$echo[1]."\n";
+			}
+		} else {
+			foreach($echolist as $echo) {
+				echo $echo[0]."\n";
+			}
 		}
 	} else {
 		foreach($echos as $echo) {
