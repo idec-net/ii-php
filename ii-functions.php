@@ -32,10 +32,9 @@ function checkHash($s) {
 
 function getmsg($t) { 
 	$t = preg_replace("/[^a-zA-Z0-9]+/", "", $t); 
-	if(!isBlackListed($t)) {
+	if(!isBlackListed($t) && file_exists("msg/$t")) {
 		return file_get_contents ("msg/$t");
-	}
-	else return "";
+	} else return "";
 }
 
 function getecho($t) { 

@@ -2,8 +2,13 @@
 require("ii-functions.php");
 header ('Content-Type: text/plain; charset=utf-8');
 
-$q = $_GET['q'];
-$opts = explode('/',$q);
+if(isset($_GET['q'])) {
+	$q = $_GET['q'];
+	$opts = explode('/', $q);
+} else {
+	exit();
+}
+
 $auth=0;
 $authname=0;
 
@@ -86,7 +91,7 @@ if($opts[1] == 'x' and $opts[2] == 't') {
 }
 
 if($opts[1] == 'x' and $opts[2] == 'small-echolist') {
-	displayEchoList($small=true);
+	displayEchoList(null, $small=true);
 }
 
 ?>
