@@ -14,8 +14,18 @@ class IIFrontend {
 		$msg=explode("\n",$msgone);
 		$meta=[];
 		$tags=explode("/",$msg[0]);
-		if(isset($tags[3])) {
-			$meta['repto']=$tags[3];
+		$newtags=[];
+
+		for($i=0;$i<count($tags);$i+=2) {
+			if(!empty($tags[$i+1])) {
+				$newtags[$tags[$i]]=$tags[$i+1];
+			} else {
+				$newtags[$tags[$i]]=false;
+			}
+		}
+
+		if(isset($newtags['repto'])) {
+			$meta['repto']=$newtags['repto'];
 		} else {
 			$meta['repto']=false;
 		}
