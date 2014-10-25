@@ -3,6 +3,9 @@
 $pushpassword="";
 $savemsgOverride=false; //do Not set to true without need
 $nodeName="lenina"; //message fingerprint for your ii node
+$postlimit=70000; //limit for base64 pointmsg
+$msgtextlimit=65536; //limit for message text (with headers)
+$logerrors=false;
 
 $parr=[
 	["","root"],

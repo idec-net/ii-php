@@ -59,7 +59,7 @@ if ($opts[1] == 'u' and $opts[2] == 'point') {
 		$ms=$_POST['tmsg'];
 	} else $error=1;
 	$addr=0;
-	if(count($ms)>65535) die("error:msg big!");
+	if(count($ms)>$postlimit) die("error:msg big!");
 	if(!$error) {
 		for($i=0;$i<count($parr);$i++) {
 			if($parr[$i][0]==$au) {

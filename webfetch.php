@@ -65,6 +65,10 @@ function fetch_messages($config) {
 			}
 		}
 	}
+	global $logerrors;
+	if($logerrors) {
+		writeLog();
+	}
 }
 
 ?>

@@ -2,6 +2,7 @@
 include_once("config.php");
 date_default_timezone_set("UTC");
 $blacklist=getBlackList();
+$logmessages=[];
 
 function getBlackList() {
 	return file("blacklist.txt");
@@ -22,6 +23,19 @@ function applyBlacklist($echo) {
 		$echo=str_replace($msgid,"",$echo);
 	}
 	return $echo;
+}
+
+function logm($str) {
+	global $logmessages;
+	echo $str;
+	$logmessages[]=$str;
+}
+
+function writeLog() {
+	global $logmessages;
+	@$fp=fopen("ii-log.txt", "w");
+	@fputs($fp, implode("", $logmessages));
+	@fclose($fp);
 }
 
 function checkHash($s) {
@@ -108,7 +122,9 @@ function pointSend($msg,$authname,$addr) {
 	}
 
 	$sent=msg_to_ii($echo,$othermsg,$authname,$addr,$time,$receiver,$subj,$repto);
-	echo "msg ok:".$sent." <a href='/$echo'>$echo</a>";
+	if($sent) {
+		echo "msg ok:".$sent;
+	}
 }
 
 function msg_to_ii($echo,$msg,$username,$addr,$time,$receiver,$subj,$repto) {
@@ -124,17 +140,9 @@ $username
 $addr
 $receiver
 $subj\n\n$msg";
-	if(count($msgwrite)>64099) die("error:msg big!");
-
 	$msgid=hsh($msgwrite);
 
-	@$echofile=fopen("echo/".$echo,"a");
-	@fputs($echofile,$msgid."\n"); fclose($echofile);
-	@$msgfile=fopen("msg/".$msgid,"w");
-	@fputs($msgfile,$msgwrite);
-	
-	fclose($msgfile);
-	return $msgid;
+	return savemsg($msgid, $echo, $msgwrite);
 }
 
 function validatemsg($m) {
@@ -155,26 +163,35 @@ function validatemsg($m) {
 function savemsg($h,$e,$t) {
 	global $savemsgOverride;
 	if (!validatemsg($t)) {
-		echo "invalid message: ".$h."\n";
-		return;
+		logm("invalid message: ".$h."\n");
+		return 0;
 	}
 	if(!checkEcho($e)) {
-		echo "error: wrong echo ".$e."\n"; 
-		return;
+		logm("error: wrong echo ".$e."\n"); 
+		return 0;
+	}
+	if(count($t)>$msgtextlimit) {
+		logm("error: msg big\n");
+		return 0;
 	}
 	if(isBlackListed($h)) {
 		echo "error: msgid is blacklisted: ".$h."\n";
-		return;
+		return 0;
 	}
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
 			$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
 			$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, "$h\n"); fclose($fp);
 			echo "message saved: ok\n";
+			return $h;
 		} else {
-			echo "error: '".$h."' this message exists\n";
+			logm("error: '".$h."' this message exists\n");
+			return 0;
 		}
-	} else echo "error: incorrect msgid\n";
+	} else {
+		logm("error: incorrect msgid\n");
+		return 0;
+	}
 }
 
 function displayEchoList($echos=false, $small=false) {
