@@ -1,8 +1,12 @@
 <?php
-include_once("config.php");
 date_default_timezone_set("UTC");
+
+require_once("config.php");
+require_once("mysql-functions.php");
+
 $blacklist=getBlackList();
 $logmessages=[];
+$savedMessages=[];
 
 function getBlackList() {
 	return file("blacklist.txt");
@@ -32,8 +36,8 @@ function logm($str) {
 }
 
 function writeLog() {
-	global $logmessages;
-	@$fp=fopen("ii-log.txt", "w");
+	global $logmessages,$logfile;
+	@$fp=fopen($logfile, "w");
 	@fputs($fp, implode("", $logmessages));
 	@fclose($fp);
 }
@@ -180,8 +184,6 @@ function savemsg($h,$e,$t) {
 	}
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
-			$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
-			$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, "$h\n"); fclose($fp);
 			echo "message saved: ok\n";
 			return $h;
 		} else {
@@ -191,6 +193,20 @@ function savemsg($h,$e,$t) {
 	} else {
 		logm("error: incorrect msgid\n");
 		return 0;
+	}
+}
+
+function saveToBase() {
+	global $savedMessages,$usemysql,$mysqldata;
+	if(!empty($savedMessages)) {
+		if($usemysql) {
+			// code for mysql group saving
+		} else {
+			foreach($savedMessages as $message) {
+				$fp = fopen('msg/'.$message["hash"], 'wb'); fwrite($fp, $message["text"]); fclose($fp);
+				$fp = fopen('echo/'.$message["echo"], 'ab'); fwrite($fp, $message["hash"]."\n"); fclose($fp);
+			}
+		}
 	}
 }
 
