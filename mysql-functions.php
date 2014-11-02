@@ -29,13 +29,26 @@ class SQLuser {
 	}
 	function executeQuery($query)
 	{
-		$db=$this->db;
-		$this->datatorint=$db->query($query);
-
-		if(is_object($this->datatorint)) {
-			$this->wasquery=true;
+		return $this->db->query($query);
+	}
+	function prepareForInsert($plainmsg, $msgid) {
+		$msg=explode("\n", $plainmsg);
+		
+		for($i=0;$i<count($msg);$i++) {
+			$msg[$i]=$this->db->real_escape_string($msg[$i]);
 		}
-		return $db->error;
+		$msgarr=array(
+			"id" => $msgid,
+			"tags" => $msg[0],
+			"echoarea" => $msg[1],
+			"date" => $msg[2],
+			"msgfrom" => $msg[3],
+			"addr" => $msg[4],
+			"msgto" => $msg[5],
+			"subj" => $msg[6],
+			"msg" => implode("\n", array_slice($msg, 8))
+		);
+		return $msgarr;
 	}
 }
 
@@ -43,6 +56,25 @@ if($usemysql) {
 	global $db,$mysqldata;
 	$md=$mysqldata;
 	$db=new SQLuser($md["host"],$md["db"],$md["user"],$md["pass"],$md["table"]);
+}
+
+function getMessages($msgids) {
+	global $db;
+	$messages=[];
+	
+	$part="";
+
+	for($i=1;$i<count($msgids);$i++) {
+		$part.="`id`='".$db->db->real_escape_string($msgids[$i])."'";
+		if($i!=count($msgids)-1) { $part.=" OR "; }
+	}
+	$query_text="SELECT * FROM `$db->tablename` WHERE ".$part;
+	$query=$db->executeQuery($query_text);
+
+	while($row=$query->fetch_row()) {
+		$messages[$row[0]]=implode("\n", array_slice($row, 1));
+	}
+	return $messages;
 }
 
 ?>

@@ -3,31 +3,10 @@ date_default_timezone_set("UTC");
 
 require_once("config.php");
 require_once("mysql-functions.php");
+require_once("blacklist-func.php");
 
-$blacklist=getBlackList();
 $logmessages=[];
 $savedMessages=[];
-
-function getBlackList() {
-	return file("blacklist.txt");
-}
-
-function isBlackListed($msgid) {
-	global $blacklist;
-
-	if(in_array($msgid."\n", $blacklist)) {
-		return true;
-	} else return false;
-}
-
-function applyBlacklist($echo) {
-	global $blacklist;
-
-	foreach($blacklist as $msgid) {
-		$echo=str_replace($msgid,"",$echo);
-	}
-	return $echo;
-}
 
 function logm($str) {
 	global $logmessages;
@@ -48,10 +27,25 @@ function checkHash($s) {
 	} else return true;
 }
 
-function getmsg($t) { 
+function getmsg($t) {
+	global $usemysql;
 	$t = preg_replace("/[^a-zA-Z0-9]+/", "", $t); 
-	if(!isBlackListed($t) && file_exists("msg/$t")) {
-		return file_get_contents ("msg/$t");
+	if(!isBlackListed($t)) {
+		if($usemysql) {
+			$list=getMessages([$t]);
+			if(!empty($list)) {
+				return $list[$t];
+			} else {
+				return "";
+			}
+		}
+		else {
+			if(file_exists("msg/$t")) {
+				return file_get_contents ("msg/$t");
+			} else {
+				return "";
+			}
+		}
 	} else return "";
 }
 
@@ -165,7 +159,7 @@ function validatemsg($m) {
 }
 
 function savemsg($h,$e,$t) {
-	global $savemsgOverride;
+	global $savemsgOverride, $usemysql;
 	if (!validatemsg($t)) {
 		logm("invalid message: ".$h."\n");
 		return 0;
@@ -184,6 +178,16 @@ function savemsg($h,$e,$t) {
 	}
 	if(checkHash($h)) {
 		if(!file_exists('msg/'.$h) or $savemsgOverride==true) {
+			if($usemysql) {
+				global $db;
+				if($db) {
+					$message=$db->prepareForInsert($t,$h);
+					$db->insertData($message);
+				}
+			} else {
+				$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
+				$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, $h."\n"); fclose($fp);
+			}
 			echo "message saved: ok\n";
 			return $h;
 		} else {
@@ -193,20 +197,6 @@ function savemsg($h,$e,$t) {
 	} else {
 		logm("error: incorrect msgid\n");
 		return 0;
-	}
-}
-
-function saveToBase() {
-	global $savedMessages,$usemysql,$mysqldata;
-	if(!empty($savedMessages)) {
-		if($usemysql) {
-			// code for mysql group saving
-		} else {
-			foreach($savedMessages as $message) {
-				$fp = fopen('msg/'.$message["hash"], 'wb'); fwrite($fp, $message["text"]); fclose($fp);
-				$fp = fopen('echo/'.$message["echo"], 'ab'); fwrite($fp, $message["hash"]."\n"); fclose($fp);
-			}
-		}
 	}
 }
 

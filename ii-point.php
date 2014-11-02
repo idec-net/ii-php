@@ -21,16 +21,25 @@ if ($opts[1] == 'm') {
 }
 
 if ($opts[1] == 'u' and $opts[2] == 'm') {
-	for ($x=3;$x<count($opts);$x++) { 
-		$hash = base64_encode(getmsg($opts[$x]));
-		echo "$opts[$x]:$hash\n";
+	$msgids=array_slice($opts, 3);
+	
+	if($usemysql) {
+		$messages=getMessages($msgids);
+	} else {
+		$messages=[];
+		foreach($msgids as $msgid) {
+			$messages[$msgid]=getmsg($msgid);
+		}
+	}
+
+	foreach($msgids as $msgid) {
+		echo $msgid.":".base64_encode($messages[$msgid])."\n";
 	}
 }
 
 if ($opts[1] == 'u' and $opts[2] == 'e') {
-	for ($x=3;$x<count($opts);$x++) { 
-		echo $opts[$x] . "\n";
-		echo getecho($opts[$x]);
+	foreach(array_slice($opts, 3) as $echo) { 
+		echo $echo."\n".getecho($echo);
 	}
 }
 
