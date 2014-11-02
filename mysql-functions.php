@@ -64,13 +64,17 @@ function getMessages($msgids) {
 	
 	$part="";
 
-	for($i=1;$i<count($msgids);$i++) {
+	for($i=0;$i<count($msgids);$i++) {
 		$part.="`id`='".$db->db->real_escape_string($msgids[$i])."'";
 		if($i!=count($msgids)-1) { $part.=" OR "; }
 	}
 	$query_text="SELECT * FROM `$db->tablename` WHERE ".$part;
 	$query=$db->executeQuery($query_text);
-
+	
+	if(!is_object($query)) {
+		echo $db->db->error."\n".$query_text."\n";
+		return [];
+	}
 	while($row=$query->fetch_row()) {
 		$messages[$row[0]]=implode("\n", array_slice($row, 1));
 	}
