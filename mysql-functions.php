@@ -4,7 +4,6 @@ require_once("config.php");
 class SQLuser {
 	public $db;
 	public $tablename;
-	public $userdata;
 	public $datatorint;
 	public $onpage=4;
 	public $wasquery=false;
@@ -16,22 +15,17 @@ class SQLuser {
 
 		$this->tablename=$table;
 
-		if($this->userSent("data")) {
-			$data=$this->userdata;
-			$data=$this->defenceHacker($data);
-			$this->insertData($data);
-		} elseif($this->userSent("query")) {
-			$this->executeQuery($this->userdata['query']);
+		if($db->error) {
+			echo $db->error;
 		}
-
-		echo $db->error;
-		$this->printInf();
-
-		$db->close();
 	}
-	function insertData($data)
+	function __destruct()
 	{
-		$this->executeQuery("insert into $this->tablename values($data[0],'$data[1]','$data[2]')");
+		$this->db->close();
+	}
+	function insertData($msg)
+	{
+		return $this->executeQuery("insert into `$this->tablename` values('".$msg['id']."', '".$msg['tags']."', '".$msg['echoarea']."', '".$msg['date']."', '".$msg['msgfrom']."', '".$msg['addr']."', '".$msg['msgto']."', '".$msg['subj']."', '".$msg['msg']."')");
 	}
 	function executeQuery($query)
 	{
@@ -41,6 +35,7 @@ class SQLuser {
 		if(is_object($this->datatorint)) {
 			$this->wasquery=true;
 		}
+		return $db->error;
 	}
 }
 
