@@ -186,8 +186,8 @@ function savemsg($h,$e,$t) {
 				}
 			} else {
 				$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
-				$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, $h."\n"); fclose($fp);
 			}
+			$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, $h."\n"); fclose($fp);
 			echo "message saved: ok\n";
 			return $h;
 		} else {
@@ -224,3 +224,4 @@ function displayEchoList($echos=false, $small=false) {
 }
 
 ?>
+
