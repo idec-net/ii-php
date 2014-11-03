@@ -4,13 +4,36 @@ require("ii-functions.php");
 class IIFrontend {
 	public $echoes;
 	public $echoesPath;
-	
+	public $nomessage=array(
+		"echo" => "none",
+		"time" => "0",
+		"from" => "",
+		"addr" => "",
+		"to" => "",
+		"subj" => "",
+		"msg" => "no message",
+		"repto" => false,
+		"id" => ""
+	);
+
 	function __construct($echoes,$echoespath) {
 		$this->echoes=$echoes;
 		$this->echoesPath=$echoespath;
 	}
-	function getMessageArray($msgid) {
-		$msgone=htmlspecialchars(getmsg($msgid));
+	function getMessagesArray($msgids) {
+		global $usemysql;
+		if($usemysql) {
+			$msgsArr=getMessages($msgids);
+		} else {
+			$msgsArr=[];
+			foreach($msgids as $msgid) {
+				$msgsArr[$msgid]=getmsg($msgid);
+			}
+		}
+		return $msgsArr;
+	}
+	function parseMessage($plainMessage, $msgid) {
+		$msgone=htmlspecialchars($plainMessage);
 		$msg=explode("\n",$msgone);
 		$meta=[];
 		$tags=explode("/",$msg[0]);
@@ -25,17 +48,25 @@ class IIFrontend {
 		}
 
 		if(isset($newtags['repto'])) {
-			$meta['repto']=$newtags['repto'];
+			$repto=$newtags['repto'];
 		} else {
-			$meta['repto']=false;
+			$repto=false;
 		}
-		$meta['echo']=$msg[1];
-		$meta['time']=$msg[2];
-		$meta['from']=$msg[3];
-		$meta['addr']=$msg[4];
-		$meta['to']=$msg[5];
-		$meta['subj']=$msg[6];
-		$meta['msg']=implode("<br />\n", array_slice($msg, 8));
+		if(count($msg)>=8) {
+			$meta=array(
+				"echo" => $msg[1],
+				"time" => $msg[2],
+				"from" => $msg[3],
+				"addr" => $msg[4],
+				"to" => $msg[5],
+				"subj" => $msg[6],
+				"msg" => implode("<br />\n", array_slice($msg, 8)),
+				"repto" => $repto,
+				"id" => $msgid
+			);
+		} else {
+			$meta=$this->nomessage;
+		}
 		
 		return $meta;
 	}

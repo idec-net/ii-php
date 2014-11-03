@@ -41,10 +41,23 @@ function lister($arr, $pnumber, $none, $ii_reader,$echoarea) {
 	
 	if ($all) {
 		//элементы выводятся в обратном порядке!!
+		$msglist=[];
 		for ($i=$all-$start-1; $i>=$all-$start-$pnumber; $i--) {
 			if (!isset($arr[$i])) break;
-			$echo.= $ii_reader->printMsg($arr[$i])."\n";
+			$msglist[]=$arr[$i];
 		}
+
+		$messages=$ii_reader->getMessagesArray($msglist);
+		foreach($msglist as $msgid) {
+			if(isset($messages[$msgid])) {
+				$parsedMessage=$ii_reader->parseMessage($messages[$msgid], $msgid);
+			} else {
+				$parsedMessage=$ii_reader->nomessage;
+			}
+
+			$echo.=$ii_reader->printMsg($parsedMessage)."\n";
+		}
+
 		$echo.= '<p>';
 		for($pr = '', $i =1; $i <= $num_pages; $i++)
 		{
@@ -76,12 +89,20 @@ class IIReader extends IIFrontend {
 			$this->printMsgs($echo);
 		} elseif ($this->userSent("msgid")) {
 			$msgid=$this->userSent("msgid");
-			$echo=$this->getMessageArray($msgid)['echo'];
+			$output=$this->getMessagesArray([$msgid]);
+
+			if(isset($output[$msgid])) {
+				$message=$this->parseMessage($output[$msgid], $msgid);
+			} else {
+				$message=$this->nomessage;
+			}
+
+			$echo=$message['echo'];
 
 			$htmltop=str_replace("{header}","<a href='?echo=$echo'>$echo</a>",$readertop);
 			echo $htmltop;
 
-			echo $this->printMsg($msgid);
+			echo $this->printMsg($message);
 		} else {
 			$htmltop=str_replace("{header}","онлайн читалка",$listtop);
 			echo $htmltop;
@@ -113,9 +134,8 @@ class IIReader extends IIFrontend {
 		if ($target==$usersent) return $ret;
 		else return false;
 	}
-	function printMsg($msgid) {
+	function printMsg($message) {
 		$ret="";
-		$message=$this->getMessageArray($msgid);
 
 		if($message['repto']) {
 			$ret.= "<div class='message-with-repto'>";
@@ -124,7 +144,7 @@ class IIReader extends IIFrontend {
 			$ret.= "<div class='message'>";
 			$ret.= "<span class='subj'>".$message['subj']."</span> ";
 		}
-		$ret.= "<a name='".$msgid."' href='?msgid=$msgid'>#&nbsp;&nbsp;</a>";
+		$ret.= "<a name='".$message['id']."' href='?msgid=".$message['id']."'>#&nbsp;&nbsp;</a>";
 		$ret.= "<span class='date'>".date("Y-m-d H:i:s", $message['time']). "</span>";
 		$ret.= "<span class='sender'>".$message['from']." (".$message['addr'].") -> ".$message['to']."</span>\n";
 		$ret.="<br /><br /><span class='msgtext'>".reparse($message['msg'])."</span>\n";

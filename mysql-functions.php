@@ -11,7 +11,7 @@ class SQLuser {
 	{
 		$this->db=new mysqli($host,$user,$pass,$db);
 		$db=$this->db;
-		$db->query("SET NAMES 'utf8'");
+		$db->query("SET NAMES `utf8`");
 
 		$this->tablename=$table;
 
@@ -70,13 +70,16 @@ function getMessages($msgids) {
 	}
 	$query_text="SELECT * FROM `$db->tablename` WHERE ".$part;
 	$query=$db->executeQuery($query_text);
-	
+
 	if(!is_object($query)) {
 		echo $db->db->error."\n".$query_text."\n";
 		return [];
 	}
 	while($row=$query->fetch_row()) {
-		$messages[$row[0]]=implode("\n", array_slice($row, 1));
+		$n=array(""); //for compatibility
+		$arr1=array_merge(array_slice($row, 1, 7)+$n+$row);
+
+		$messages[$row[0]]=implode("\n", $arr1);
 	}
 	return $messages;
 }

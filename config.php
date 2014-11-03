@@ -10,7 +10,7 @@ $msgtextlimit=65536; //limit for message text (with headers)
 $logfile="ii-log.txt";
 $logerrors=false;
 
-$usemysql=true;
+$usemysql=false;
 $mysqldata=array(
 	"host" => "localhost",
 	"db" => "test",
