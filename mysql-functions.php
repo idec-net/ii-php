@@ -11,7 +11,7 @@ class SQLuser {
 	{
 		$this->db=new mysqli($host,$user,$pass,$db);
 		$db=$this->db;
-		$db->query("SET NAMES `utf8`");
+		$q1=$db->query("SET NAMES `utf8`");
 
 		$this->tablename=$table;
 
@@ -76,7 +76,7 @@ function getMessages($msgids) {
 		return [];
 	}
 	while($row=$query->fetch_row()) {
-		$n=array(""); //for compatibility
+		$n=array("\n"); //for compatibility
 		$arr1=array_merge(array_slice($row, 1, 7)+$n+$row);
 
 		$messages[$row[0]]=implode("\n", $arr1);

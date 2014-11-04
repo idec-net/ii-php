@@ -6,7 +6,6 @@ require_once("mysql-functions.php");
 require_once("blacklist-func.php");
 
 $logmessages=[];
-$savedMessages=[];
 
 function logm($str) {
 	global $logmessages;
@@ -159,7 +158,7 @@ function validatemsg($m) {
 }
 
 function savemsg($h,$e,$t) {
-	global $savemsgOverride, $usemysql;
+	global $savemsgOverride, $usemysql, $msgtextlimit;
 	if (!validatemsg($t)) {
 		logm("invalid message: ".$h."\n");
 		return 0;
@@ -168,7 +167,7 @@ function savemsg($h,$e,$t) {
 		logm("error: wrong echo ".$e."\n"); 
 		return 0;
 	}
-	if(count($t)>$msgtextlimit) {
+	if(strlen($t)>$msgtextlimit) {
 		logm("error: msg big\n");
 		return 0;
 	}
@@ -188,7 +187,6 @@ function savemsg($h,$e,$t) {
 				$fp = fopen('msg/'.$h, 'wb'); fwrite($fp, $t); fclose($fp);
 			}
 			$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, $h."\n"); fclose($fp);
-			echo "message saved: ok\n";
 			return $h;
 		} else {
 			logm("error: '".$h."' this message exists\n");
@@ -224,4 +222,3 @@ function displayEchoList($echos=false, $small=false) {
 }
 
 ?>
-

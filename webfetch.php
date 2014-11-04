@@ -60,7 +60,10 @@ function fetch_messages($config) {
 				$arr=explode(":",$bundle);
 				if(!empty($arr[0])) {
 					$msgid=$arr[0]; $message=b64d($arr[1]);
-					savemsg($msgid, $echo, $message);
+					$hash=savemsg($msgid, $echo, $message);
+					if($hash) {
+						echo "message saved: ok\n";
+					}
 				}
 			}
 		}
