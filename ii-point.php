@@ -70,13 +70,11 @@ if ($opts[1] == 'u' and $opts[2] == 'point') {
 	$addr=0;
 	if(count($ms)>$postlimit) die("error:msg big!");
 	if(!$error) {
-		for($i=0;$i<count($parr);$i++) {
-			if($parr[$i][0]==$au) {
-				$auth=$au;
-				$authname=$parr[$i][1];
-				$addr=$i+1;
-				break;
-			}
+		$pointCheck=checkUser($au);
+		if($pointCheck) {
+			$auth=$au;
+			$authname=$pointCheck[0];
+			$addr=$pointCheck[1];
 		}
 		
 		if($auth and $authname) {

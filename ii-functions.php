@@ -26,6 +26,25 @@ function checkHash($s) {
 	} else return true;
 }
 
+function checkEcho($echo) {
+	$filter='/^[a-z0-9_!.-]{1,60}\.\d{1,9}$/';
+	if(!preg_match($filter,$echo)) return false;
+	else return true;
+}
+
+function checkUser($authstr) {
+	global $parr;
+	for($i=0;$i<count($parr);$i++) {
+		if($parr[$i][0]==$authstr) {
+			$authname=$parr[$i][1];
+			$addr=$i+1;
+			break;
+		}
+	}
+	if(isset($authname) and !empty($authname)) return [$authname, $addr];
+	else return false;
+}
+
 function getmsg($t) {
 	global $usemysql;
 	$t = preg_replace("/[^a-zA-Z0-9]+/", "", $t); 
@@ -66,12 +85,6 @@ function hsh($s) {
 	$s1=str_replace("-","A",$s1);
 	$s1=str_replace("_","z",$s1);
 	return substr($s1,0,20);
-}
-
-function checkEcho($echo) {
-	$filter='/^[a-z0-9_!.-]{1,60}\.\d{1,9}$/';
-	if(!preg_match($filter,$echo)) return false;
-	else return true;
 }
 
 function pointSend($msg,$authname,$addr) {

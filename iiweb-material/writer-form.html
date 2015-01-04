@@ -1,0 +1,15 @@
+<h2>{formheader}</h2>
+
+<form method="post">
+{errors}<br />
+{msg}
+<input class="txt" type="text" placeholder="Тема" name="subj" value="{subj}" />
+
+<textarea class="txt" placeholder="Текст сообщения" name="msgtext">{msgtext}</textarea>
+{passwd}
+{token}
+<input type="hidden" name="a" value="1" />
+<br />
+<input class="waves-button waves-float waves-effect submbtn" type="submit" value="Отправить" />
+</form>
+

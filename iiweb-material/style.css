@@ -1,0 +1,144 @@
+body {
+	font-family:Ubuntu,Helvetica,Arial,Sans;
+	font-size:11pt;
+	background-color:#fffdfd;
+	width: 100%;
+	overflow-x: hidden;
+}
+/* blocks */
+
+#content {
+	width:95%;
+	text-align: center;
+	margin:52px auto;
+}
+
+div.links {
+	background: #006064;
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	min-height: 1cm;
+	box-shadow:1px 5px 3px #888888;
+	z-index: 2;
+}
+
+#main {
+	text-decoration:none;
+	float:left;
+	line-height:1cm;
+	color:white;
+	font-weight:bold;
+}
+
+.pic {
+	height:24px;
+	width:24px;
+	padding:6px;
+	float:left;
+}
+.message-container {
+	margin-top: 5px;
+	overflow: auto;
+	padding: 5px;
+}
+.message, .message-with-repto {
+	width: 90%;
+	float: left;
+	background-color: white;
+	text-align: left;
+	padding: 10px;
+	box-shadow: 1px 1px 3px #888888;
+	overflow: auto;
+}
+.viewonly {
+	margin: 0 auto 20px auto;
+	float: none !important;
+}
+
+.reply {
+	float: right;
+	position: static !important;
+	display: block !important;
+	font-size: 15pt !important;
+	padding: 0px !important;
+	box-shadow: 1px 1px 3px #888888;
+}
+.reply, .reply:hover {
+	background-color: #e65100 !important;
+	color: #ffffff !important;
+}
+
+/* texts */
+
+a {
+	color:#e65100;
+	text-decoration:none;
+	outline: none;
+}
+a:hover {
+	color:#fb8c00;
+}
+.links a, .links a:visited {
+	text-decoration:none;
+	color:white !important;
+	float:right;
+	padding:0px 8px 0px 8px;
+	line-height:1cm;
+	min-width:100px;
+	text-align:center;
+	user-select: none;
+}
+/*.links a:hover {
+	background-color: #00acc1;
+}
+.links a:active {
+	background-color: #00bcd4;
+}
+*/
+.message {
+	background: #e0f7fa;
+}
+.sender {
+	float: right;
+	font-weight: bold;
+}
+.date {
+	color: rgba(0,0,0,0.54);
+}
+.subj {
+	color: black;
+}
+p#nav {
+	display: block;
+}
+ul {
+	list-style-type: none;
+	text-align: left;
+	width: 50%;
+	margin: 0 auto;
+}
+input,textarea {
+	margin-bottom: 20px !important;
+	box-shadow: 1px 1px 3px #888888;
+	text-align: left !important;
+	border: none;
+}
+form {
+	width: 100%;
+	text-align: center;
+	align-content: center;
+}
+.txt {
+	width: 90% !important;
+	background-color: white !important;
+	padding: 10px;
+}
+textarea {
+	min-height: 400px;
+}
+.submbtn {
+	background-color: #e65100 !important;
+	color: white !important;
+}
