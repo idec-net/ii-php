@@ -20,7 +20,7 @@ $mysqldata=array(
 );
 
 $parr=[
-	["a","root"],
+	["","root"],
 	["","point1"]
 ];
 
