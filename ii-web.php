@@ -340,7 +340,7 @@ class IIWeb extends IIFrontend {
 			if(!file_exists("echo/".$echo[0])) {
 				$countmsgs=0;
 			} else {
-				$countmsgs=count(explode("\n", getecho($echo[0])));
+				$countmsgs=count(explode("\n", getecho($echo[0])))-1;
 			}
 			$text.="<li><a href='?echo=".$echo[0]."'>".$echo[0]."</a> - ".$echo[1]." - $countmsgs сообщений</li>";
 		}

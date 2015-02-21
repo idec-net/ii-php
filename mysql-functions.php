@@ -76,8 +76,8 @@ function getMessages($msgids) {
 		return [];
 	}
 	while($row=$query->fetch_row()) {
-		$n=array("\n"); //for compatibility
-		$arr1=array_merge(array_slice($row, 1, 7)+$n+$row);
+		$n=[""]; // for compatibility
+		$arr1=array_merge(array_slice($row, 1, 7), $n, array_slice($row, 8));
 
 		$messages[$row[0]]=implode("\n", $arr1);
 	}
