@@ -1,73 +1,52 @@
 body {
-	font-family:Ubuntu,Helvetica,Arial,Sans;
+	font-family: sans-serif, Helvetica, "Fira Sans", "Ubuntu";
 	font-size:11pt;
-	background-color:#fffdfd;
-	width: 100%;
-	overflow-x: hidden;
+	background-color:#EDECEC;
 }
 /* blocks */
 
 #content {
-	width:95%;
+	width:90%;
+	height: 100%;
 	text-align: center;
-	margin:52px auto;
+	margin:55pt auto;
 }
 
 div.links {
 	background: #006064;
 	position: fixed;
+	height: 40pt;
 	left: 0px;
 	top: 0px;
 	width: 100%;
-	min-height: 1cm;
-	box-shadow:1px 5px 3px #888888;
+	box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.3);
 	z-index: 2;
 }
 
-#main {
+.links h1 {
+	font-size: 14pt;
 	text-decoration:none;
-	float:left;
-	line-height:1cm;
+	text-transform: capitalize;
 	color:white;
 	font-weight:bold;
+	float: left;
+	line-height: 40pt;
+	margin: 0px 20pt;
+}
+.links h1 a {
+	font-size: 14pt !important;
 }
 
-.pic {
-	height:24px;
-	width:24px;
-	padding:6px;
-	float:left;
-}
-.message-container {
-	margin-top: 5px;
-	overflow: auto;
-	padding: 5px;
-}
 .message, .message-with-repto {
-	width: 90%;
-	float: left;
 	background-color: white;
+	margin-bottom: 10pt;
 	text-align: left;
 	padding: 10px;
-	box-shadow: 1px 1px 3px #888888;
+	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
 	overflow: auto;
 }
 .viewonly {
 	margin: 0 auto 20px auto;
-	float: none !important;
-}
-
-.reply {
-	float: right;
-	position: static !important;
-	display: block !important;
-	font-size: 15pt !important;
-	padding: 0px !important;
-	box-shadow: 1px 1px 3px #888888;
-}
-.reply, .reply:hover {
-	background-color: #e65100 !important;
-	color: #ffffff !important;
 }
 
 /* texts */
@@ -83,27 +62,27 @@ a:hover {
 .links a, .links a:visited {
 	text-decoration:none;
 	color:white !important;
+	font-size: 10.5pt !important;
 	float:right;
+	line-height: 40pt;
 	padding:0px 8px 0px 8px;
-	line-height:1cm;
 	min-width:100px;
 	text-align:center;
 	user-select: none;
+	text-transform: uppercase;
 }
-/*.links a:hover {
-	background-color: #00acc1;
-}
-.links a:active {
-	background-color: #00bcd4;
-}
-*/
 .message {
 	background: #e0f7fa;
 }
 .sender {
 	float: right;
 	font-weight: bold;
+	color: black !important;
 }
+a.sender:hover {
+	border-bottom: 2px solid #e65100;
+}
+
 .date {
 	color: rgba(0,0,0,0.54);
 }
@@ -111,7 +90,9 @@ a:hover {
 	color: black;
 }
 p#nav {
-	display: block;
+	display: inline;
+	text-align: center;
+	line-height: 50pt;
 }
 ul {
 	list-style-type: none;
@@ -119,21 +100,18 @@ ul {
 	width: 50%;
 	margin: 0 auto;
 }
-input,textarea {
-	margin-bottom: 20px !important;
-	box-shadow: 1px 1px 3px #888888;
-	text-align: left !important;
-	border: none;
-}
 form {
 	width: 100%;
 	text-align: center;
-	align-content: center;
 }
 .txt {
-	width: 90% !important;
+	width: inherit;
 	background-color: white !important;
 	padding: 10px;
+	margin-bottom: 20px !important;
+	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
+	text-align: left !important;
+	border: none;
 }
 textarea {
 	min-height: 400px;

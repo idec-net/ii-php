@@ -4,13 +4,8 @@
 toplinks=document.getElementsByClassName("toplink");
 topclasses=Array("waves-effect", "waves-button", "waves-light");
 
-replylinks=document.getElementsByClassName("reply");
-replyclasses=Array("waves-effect", "waves-button", "waves-circle", "waves-light");
 for(i=0; i<toplinks.length; i++) {
 	for(a=0;a<topclasses.length;a++) { toplinks[i].classList.add(topclasses[a]); }
-}
-for(i=0; i<replylinks.length; i++) {
-	for(a=0;a<replyclasses.length;a++) { replylinks[i].classList.add(replyclasses[a]); }
 }
 Waves.displayEffect();
 </script>
