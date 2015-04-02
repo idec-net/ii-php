@@ -1,13 +1,13 @@
 body {
 	font-family: sans-serif, Helvetica, "Fira Sans", "Ubuntu";
 	font-size:11pt;
+	line-height: 1.5;
 	background-color:#EDECEC;
 }
-/* blocks */
 
 #content {
 	width:90%;
-	height: 100%;
+	min-height: 100%;
 	text-align: center;
 	margin:55pt auto;
 }
@@ -24,9 +24,9 @@ div.links {
 }
 
 .links h1 {
-	font-size: 14pt;
+	font-size: 13pt;
 	text-decoration:none;
-	text-transform: capitalize;
+	text-transform: uppercase;
 	color:white;
 	font-weight:bold;
 	float: left;
@@ -34,22 +34,20 @@ div.links {
 	margin: 0px 20pt;
 }
 .links h1 a {
-	font-size: 14pt !important;
+	font-size: 13pt;
 }
 
 .message, .message-with-repto {
 	background-color: white;
 	margin-bottom: 10pt;
 	text-align: left;
-	padding: 10px;
+	padding: 11pt;
 	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
 	overflow: auto;
 }
 .viewonly {
 	margin: 0 auto 20px auto;
 }
-
-/* texts */
 
 a {
 	color:#e65100;
@@ -61,8 +59,8 @@ a:hover {
 }
 .links a, .links a:visited {
 	text-decoration:none;
-	color:white !important;
-	font-size: 10.5pt !important;
+	color:white;
+	font-size: 10.5pt;
 	float:right;
 	line-height: 40pt;
 	padding:0px 8px 0px 8px;
@@ -71,6 +69,10 @@ a:hover {
 	user-select: none;
 	text-transform: uppercase;
 }
+.links a:active {
+	background: #0097a7;
+}
+
 .message {
 	background: #e0f7fa;
 }
@@ -83,7 +85,7 @@ a.sender:hover {
 	border-bottom: 2px solid #e65100;
 }
 
-.date {
+.date, .quote {
 	color: rgba(0,0,0,0.54);
 }
 .subj {
@@ -94,29 +96,38 @@ p#nav {
 	text-align: center;
 	line-height: 50pt;
 }
-ul {
-	list-style-type: none;
-	text-align: left;
-	width: 50%;
-	margin: 0 auto;
-}
 form {
 	width: 100%;
 	text-align: center;
 }
 .txt {
 	width: inherit;
-	background-color: white !important;
+	background-color: white;
 	padding: 10px;
-	margin-bottom: 20px !important;
+	margin-bottom: 20px;
 	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
-	text-align: left !important;
+	text-align: left;
 	border: none;
 }
 textarea {
 	min-height: 400px;
 }
 .submbtn {
-	background-color: #e65100 !important;
-	color: white !important;
+	background-color: #e65100;
+	color: white;
+	padding: 10px 15px;
+	border-radius: 2px;
+	box-shadow: 0px 1px 1.5px 1px rgba(0, 0, 0, 0.12);
+	cursor: pointer;
+	border: medium none;
+	transition: box-shadow 0.5s ease-out;
+	z-index: 1;
+}
+.submbtn:active {
+	box-shadow: 0px 5px 25px rgba(0, 0, 0, 0.3);
+}
+
+table.echolist {
+	margin: 0 auto;
+	width: 70%;
 }

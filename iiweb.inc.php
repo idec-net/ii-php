@@ -1,11 +1,10 @@
 <?php
-// Todo: поменять постраничный вывод
-
 require("ii-functions.php");
+
+session_set_cookie_params(172800);
 session_start();
 
 class IIFrontend {
-	public $echoes;
 	public $echoesPath;
 	public $nomessage=array(
 		"echo" => "none",
@@ -19,8 +18,7 @@ class IIFrontend {
 		"id" => ""
 	);
 
-	function __construct($echoes,$echoespath) {
-		$this->echoes=$echoes;
+	function __construct($echoespath) {
 		$this->echoesPath=$echoespath;
 	}
 	function getMessagesArray($msgids) {
@@ -63,7 +61,7 @@ class IIFrontend {
 				"addr" => $msg[4],
 				"to" => $msg[5],
 				"subj" => $msg[6],
-				"msg" => implode("<br />\n", array_slice($msg, 8)),
+				"msg" => implode("\n", array_slice($msg, 8)),
 				"repto" => $repto,
 				"id" => $msgid
 			);
@@ -96,7 +94,7 @@ function reparse($string) {
 		} else {
 			$string[$i] = preg_replace("/target=\"_blank\" href=\"ii:\/\/(.+?)\"/s", "class=\"iilink\" href=\"?msgid=$1\"", $string[$i]);
 		}
-		if (preg_match("/^====\<br \/\>$/", $string[$i])) {
+		if (preg_match("/^====$/", $string[$i])) {
 			if (!$pre_flag) {
 				$pre_flag = true;
 				$string[$i] = preg_replace("/====/", "<pre>====", $string[$i]);
@@ -105,8 +103,11 @@ function reparse($string) {
 				$string[$i] = preg_replace("/====/", "====</pre>", $string[$i]);
 			}
 		}
+		if(!$pre_flag && substr($string[$i], 0, 4)=='&gt;') {
+			$string[$i]="<span class='quote'>".$string[$i]."</span>";
+		}
 	}
-	$string = implode($string);
+	$string = implode("<br />", $string);
 	return $string;
 }
 function reparseSubj($str) {
@@ -132,10 +133,12 @@ function generate_csrf_token() {
 
 class IIWeb extends IIFrontend {
 	public $onPage;
+	public $echoes;
 
 	function __construct($echoareas, $tpldir, $onpage) {
-		parent::__construct($echoareas,"echo/");
+		parent::__construct("echo/");
 		$this->onPage=$onpage;
+		$this->echoes=$echoareas;
 		
 		$html=""; //html code of page
 
@@ -211,8 +214,9 @@ class IIWeb extends IIFrontend {
 				$header="<a class='toplink' href='?echo=$echo'>$echo</a>";
 
 				if ($remote["reply"]) {
-					$html.=$this->printForm($writerform, $message["echo"], $message["subj"], "Ответ", $this->printMsg($message, true), "");			} else {
-					$html.=$this->printMsg($message);
+					$html.=$this->printForm($writerform, $message["echo"], $message["subj"], "Ответ", $this->printMsg($message, true, false), "");
+				} else {
+					$html.=$this->printMsg($message, false, true);
 				}
 			} else {
 				$header="веб-клиент";
@@ -298,9 +302,12 @@ class IIWeb extends IIFrontend {
 		}
 		return $userDataArray;
 	}
-	function printMsg($message, $viewonly=false) {
+	function printMsg($message, $viewonly=false, $plainlink=false) {
 		$styleclass=$viewonly ? " viewonly" : "";
 		$ret="";
+
+		$msgid=$message['id'];
+		$plainMessagelink=$plainlink ? "ii-point.php?q=/m/".$msgid : "?msgid=$msgid";
 
 		if($message['repto']) {
 			$ret.= "<div class='message-with-repto$styleclass'>";
@@ -309,14 +316,14 @@ class IIWeb extends IIFrontend {
 			$ret.= "<div class='message$styleclass'>";
 			$ret.= "<span class='subj'>".$message['subj']."</span> ";
 		}
-		$ret.= "<a name='".$message['id']."' href='?msgid=".$message['id']."'>#</a>&nbsp;&nbsp;";
+		$ret.="<a name='$msgid' href='$plainMessagelink'>#</a>&nbsp;&nbsp;";
 		$ret.= "<span class='date'>".date("Y-m-d H:i:s", $message['time']). "</span>";
 		
-		$ret.=$viewonly ? "<span class='sender'>" : "<a class='reply sender' href='?msgid=".$message['id']."&reply'>";
+		$ret.=$viewonly ? "<span class='sender'>" : "<a class='reply sender' href='?msgid=".$msgid."&reply'>";
 		$ret.= $message['from']." (".$message['addr'].") → ".$message['to'];
 		$ret.=$viewonly ? "</span>\n" : "</a>";
-
-		$ret.="<br /><br /><span class='msgtext'>".reparse($message['msg'])."</span>\n";
+		
+		$ret.="<br /><br />\n<span class='msgtext'>".reparse($message['msg'])."</span>\n";
 
 		$ret.="</div>";
 		return $ret;
@@ -334,16 +341,16 @@ class IIWeb extends IIFrontend {
 	function printEchos() {
 		$text="";
 		$arr=$this->echoes;
-		$text.="<h3>Выберите эхоконференцию</h3>\n<ul>";
+		$text.="<h3>Выберите эхоконференцию</h3>\n<table class='echolist'>";
 		foreach($arr as $echo) {
 			if(!file_exists("echo/".$echo[0])) {
 				$countmsgs=0;
 			} else {
 				$countmsgs=count(explode("\n", getecho($echo[0])))-1;
 			}
-			$text.="<li><a href='?echo=".$echo[0]."'>".$echo[0]."</a> - ".$echo[1]." - $countmsgs сообщений</li>";
+			$text.="<tr><td><a href='?echo=".$echo[0]."'>".$echo[0]."</a></td><td>[$countmsgs]</td><td>".$echo[1]."</td></tr>";
 		}
-		$text.="</ul>";
+		$text.="</table>";
 		return $text;
 	}
 	function printMsgs($echo) {
@@ -351,21 +358,22 @@ class IIWeb extends IIFrontend {
 		$arr=$this->getMsgList($echo);
 		$pnumber=$this->onPage;
 		
-		//постраничная навигация
+		// постраничная навигация; править осторожно, т.к. это магия
 		$myaddr="?echo=".$echo;
 		$all=count($arr);
-		$page=(isset($_GET['page'])) ? (int)$_GET['page'] : 1;
 		$num_pages=ceil($all/$pnumber);
+		$page=(isset($_GET['page'])) ? (int)$_GET['page'] : $num_pages;
+		if ($page > $num_pages || $page < 1) { $page=$num_pages; }
 		$start=$page*$pnumber-$pnumber;
-		if ($page > $num_pages || $page < 1) { $page=1; $start=0; }
 		
 		if ($all) {
-			//элементы выводятся в обратном порядке!!
 			$msglist=[];
-			for ($i=$all-$start-1; $i>=$all-$start-$pnumber; $i--) {
+			for ($i=$start; $i<$start+$pnumber; $i++) {
 				if (!isset($arr[$i])) break;
 				$msglist[]=$arr[$i];
 			}
+			// сообщения выводятся в обратном порядке
+			$msglist=array_reverse($msglist);
 	
 			$messages=$this->getMessagesArray($msglist);
 			foreach($msglist as $msgid) {

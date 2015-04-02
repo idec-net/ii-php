@@ -47,6 +47,8 @@ function ii_post($item,$echo,$include_link=true) {
 	$adress="mira, 1";
 
 	$subject=$item->title;
+	$subject=strip_tags($subject);
+	
 	$message=$item->description;
 
 	$message=html_entity_decode($message, ENT_QUOTES, 'UTF-8');
@@ -54,11 +56,10 @@ function ii_post($item,$echo,$include_link=true) {
 	$search = array ('/<script.*?>.*?<\/script>/si',  // Strip out javascript
 					'/<style.*?>.*?<\/style>/siU'   // Strip style tags proper
 					);
-
+	
 	$message=preg_replace($search, "", $message);
-
 	$message=strip_tags($message, "<img><a>");
-	$message=str_replace("\n", " ", $message);
+	$message=str_replace("\n\n", "\n", $message);
 
     $message=preg_replace('/<a.*?href="(.*?)">(.*?)<\/a>/', ' [ \2 ]( \1 ) ', $message);
     $message=preg_replace('/<img.*?src="(.*?)".*?>/', ' \1 ', $message);
