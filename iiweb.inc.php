@@ -185,7 +185,7 @@ class IIWeb extends IIFrontend {
 			
 			$header=$echo;
 			$links[]='<a class="toplink" href="?echo={header}">Обновить</a>';
-			$links[]='<a class="toplink" href="?echo={header}&new">Новое</a>';
+			$links[]='<a class="toplink" href="?echo={header}&amp;new">Новое</a>';
 			$html.=$this->printMsgs($echo);
 		} else {
 			// иначе юзер хочет что-то посмотреть, либо что-то неправильно
@@ -198,7 +198,7 @@ class IIWeb extends IIFrontend {
 				} else {
 					$header=$echo;
 					$links[]='<a class="toplink" href="?echo={header}">Обновить</a>';
-					$links[]='<a class="toplink" href="?echo={header}&new">Новое</a>';
+					$links[]='<a class="toplink" href="?echo={header}&amp;new">Новое</a>';
 					$html.=$this->printMsgs($echo);
 				}
 			} elseif ($remote["msgid"]) {
@@ -319,7 +319,7 @@ class IIWeb extends IIFrontend {
 		$ret.="<a name='$msgid' href='$plainMessagelink'>#</a>&nbsp;&nbsp;";
 		$ret.= "<span class='date'>".date("Y-m-d H:i:s", $message['time']). "</span>";
 		
-		$ret.=$viewonly ? "<span class='sender'>" : "<a class='reply sender' href='?msgid=".$msgid."&reply'>";
+		$ret.=$viewonly ? "<span class='sender'>" : "<a class='reply sender' href='?msgid=".$msgid."&amp;reply'>";
 		$ret.= $message['from']." (".$message['addr'].") → ".$message['to'];
 		$ret.=$viewonly ? "</span>\n" : "</a>";
 		
@@ -389,7 +389,7 @@ class IIWeb extends IIFrontend {
 			$output.='<p id="nav">';
 			for($pr = '', $i =1; $i <= $num_pages; $i++)
 			{
-				$output.=$pr=(($i == 1 || $i == $num_pages || abs($i-$page) < 2) ? ($i == $page ? " [$i] " : ' <a href="'.$myaddr.'&page='.$i.'">'.$i.'</a> ') : (($pr == ' ... ' || $pr == '')? '' : ' ... '));
+				$output.=$pr=(($i == 1 || $i == $num_pages || abs($i-$page) < 2) ? ($i == $page ? " [$i] " : ' <a href="'.$myaddr.'&amp;page='.$i.'">'.$i.'</a> ') : (($pr == ' ... ' || $pr == '')? '' : ' ... '));
 			}
 			$output.='</p>';
 		} else {
