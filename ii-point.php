@@ -89,6 +89,10 @@ if($opts[1] == 'list.txt') {
 	displayEchoList();
 }
 
+if($opts[1] == 'blacklist.txt') {
+	echo implode("", $blacklist);
+}
+
 if($opts[1] == 'x' and $opts[2] == 't') {
 	$echos=[];
 	for ($x=3;$x<count($opts);$x++) {
@@ -99,6 +103,33 @@ if($opts[1] == 'x' and $opts[2] == 't') {
 
 if($opts[1] == 'x' and $opts[2] == 'small-echolist') {
 	displayEchoList(null, $small=true);
+}
+
+if($opts[1] == 'x' and $opts[2] == 'e' and !empty($_POST['data'])) {
+	$lines=explode("\n", $_POST['data']);
+	foreach ($lines as $line) {
+		$line=explode(":", $line);
+		if (count($line)!=2) continue;
+
+		$echoarea=trim($line[0]);
+		$msgid=trim($line[1]);
+		
+		$msgids=getecho($echoarea);
+		$index=explode("\n", $msgids);
+		array_pop($index);
+
+		$maxElement=count($index)-1;
+
+		$search=array_search($msgid, $index);
+		if ($search!=NULL and $search<$maxElement) {
+			$newMessages=array_slice($index, $search+1);
+			echo $echoarea."\n".implode("\n", $newMessages)."\n";
+		} elseif ($search==$maxElement) {
+			continue;
+		} else {
+			echo $echoarea."\n".$msgids;
+		}
+	}
 }
 
 ?>
