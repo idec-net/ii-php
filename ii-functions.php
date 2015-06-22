@@ -217,7 +217,7 @@ function displayEchoList($echos=false, $small=false) {
 		global $echolist;
 		if(!$small) {
 			foreach($echolist as $echo) {
-				$countMessages=count(explode("\n",getecho($echo[0])));
+				$countMessages=count(explode("\n",getecho($echo[0])))-1;
 				echo $echo[0].":".$countMessages.":".$echo[1]."\n";
 			}
 		} else {
@@ -228,7 +228,7 @@ function displayEchoList($echos=false, $small=false) {
 	} else {
 		foreach($echos as $echo) {
 			if(checkEcho($echo)) {
-				echo $echo.":".count(explode("\n",getecho($echo)))."\n";
+				echo $echo.":".(count(explode("\n",getecho($echo)))-1)."\n";
 			}
 		}
 	}
