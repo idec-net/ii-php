@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `$db->tablename`
 		`msgto` text,
 		`subj` text not NULL,
 		`msg` text not NULL
-	) ENGINE InnoDB;
+	) ENGINE InnoDB default charset='utf8';
 ");
 echo $creation;
 

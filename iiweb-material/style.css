@@ -26,16 +26,20 @@ div.links {
 
 .links h1 {
 	font-size: 13pt;
-	text-decoration:none;
+	text-decoration: none;
 	text-transform: uppercase;
-	color:white;
+	color: white;
 	font-weight:bold;
 	float: left;
 	line-height: 40pt;
 	margin: 0px 20pt;
 }
+
 .links h1 a {
 	font-size: 13pt;
+}
+.links h1 a:before {
+	content: "← ";
 }
 
 .message, .message-with-repto {
@@ -61,7 +65,8 @@ a:hover {
 }
 .links a, .links a:visited {
 	text-decoration:none;
-	color:white;
+	transition: color 0.3s ease-out;
+	color: #DDDDDD;
 	font-size: 10.5pt;
 	float:right;
 	line-height: 40pt;
@@ -70,6 +75,9 @@ a:hover {
 	text-align:center;
 	user-select: none;
 	text-transform: uppercase;
+}
+.links a:hover {
+	color: white;
 }
 .links a:active {
 	background: #0097a7;
@@ -126,7 +134,7 @@ textarea {
 	transition: box-shadow 0.3s ease-out;
 	z-index: 1;
 }
-.submbtn:active {
+.submbtn:hover {
 	box-shadow: 0px 5px 25px rgba(0, 0, 0, 0.3);
 }
 
