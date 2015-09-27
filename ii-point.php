@@ -4,7 +4,14 @@ header ('Content-Type: text/plain; charset=utf-8');
 
 if(isset($_GET['q'])) {
 	$q = $_GET['q'];
-	$opts = explode('/', $q);
+	$opts = [];
+
+	$all_options = explode('/', $q);
+	foreach ($all_options as $option) {
+		if (!empty($option)) $opts[]=$option;
+	}
+
+	$optc = count($opts);
 } else {
 	exit();
 }
@@ -12,16 +19,16 @@ if(isset($_GET['q'])) {
 $auth=0;
 $authname=0;
 
-if ($opts[1] == 'e') {
-	echo getecho($opts[2]);
+if ($opts[0] == 'e') {
+	echo getecho($opts[1]);
 }
 
-if ($opts[1] == 'm') {
-	echo getmsg($opts[2]);
+if ($opts[0] == 'm') {
+	echo getmsg($opts[1]);
 }
 
-if ($opts[1] == 'u' and $opts[2] == 'm') {
-	$msgids=array_slice($opts, 3);
+if ($opts[0] == 'u' and $opts[1] == 'm') {
+	$msgids=array_slice($opts, 2);
 	
 	if($usemysql) {
 		$messages=getMessages($msgids);
@@ -37,9 +44,45 @@ if ($opts[1] == 'u' and $opts[2] == 'm') {
 	}
 }
 
-if ($opts[1] == 'u' and $opts[2] == 'e') {
-	foreach(array_slice($opts, 3) as $echo) { 
-		echo $echo."\n".getecho($echo);
+if ($opts[0] == 'u' and $opts[1] == 'e') {
+	$work_options=array_slice($opts, 2);
+	$w_opts_count=count($work_options);
+	
+	if (
+		count($work_options > 1) and
+		strstr($work_options[$w_opts_count-1], ":")!==false
+	) {
+		$buffer="";
+		$numbers=explode(":", $work_options[$w_opts_count-1]);
+		
+		$a=intval($numbers[0]);
+		$b=intval($numbers[1]);
+		
+		$echoareas=array_slice($work_options, 0, $w_opts_count-1);
+		$messages=[];
+
+		foreach ($echoareas as $echo) {
+			$all_messages_rawarray=explode("\n", getecho($echo));
+			$all_messages=[];
+			foreach ($all_messages_rawarray as $msgid) {
+				if (!empty($msgid) and $msgid!="\n") {
+					$all_messages[]=$msgid;
+				}
+			}
+			$slice=array_slice($all_messages, $a, $b);
+			
+			if (count($slice)>0) {
+				$buffer.=$echo."\n".implode("\n", $slice)."\n";
+			} else {
+				$buffer.=$echo."\n";
+			}
+		}
+		echo $buffer;
+
+	} else {
+		foreach($work_options as $echo) { 
+			echo $echo."\n".getecho($echo);
+		}
 	}
 }
 
@@ -56,13 +99,13 @@ if (!empty($_POST['upush'])) {
 	}
 }
 
-if ($opts[1] == 'u' and $opts[2] == 'point') {
+if ($opts[0] == 'u' and $opts[1] == 'point') {
 	$error=0;
-	if (isset($opts[3]) && isset($opts[4]) &&
-		$opts[3] && $opts[4]
+	if (isset($opts[2]) && isset($opts[3]) &&
+		$opts[2] && $opts[3]
 	) {
-		$au=$opts[3];
-		$ms=$opts[4];
+		$au=$opts[2];
+		$ms=$opts[3];
 	} elseif($_POST['pauth'] && $_POST['tmsg']) {
 		$au=$_POST['pauth'];
 		$ms=$_POST['tmsg'];
@@ -85,27 +128,27 @@ if ($opts[1] == 'u' and $opts[2] == 'point') {
 	} else die('error: unknown');
 }
 
-if($opts[1] == 'list.txt') {
+if($opts[0] == 'list.txt') {
 	displayEchoList();
 }
 
-if($opts[1] == 'blacklist.txt') {
+if($opts[0] == 'blacklist.txt') {
 	echo implode("", $blacklist);
 }
 
-if($opts[1] == 'x' and $opts[2] == 't') {
+if($opts[0] == 'x' and $opts[1] == 't') {
 	$echos=[];
-	for ($x=3;$x<count($opts);$x++) {
+	for ($x=2;$x<count($opts);$x++) {
 		$echos[]=$opts[$x];
 	}
 	displayEchoList($echos);
 }
 
-if($opts[1] == 'x' and $opts[2] == 'small-echolist') {
+if($opts[0] == 'x' and $opts[1] == 'small-echolist') {
 	displayEchoList(null, $small=true);
 }
 
-if($opts[1] == 'x' and $opts[2] == 'e' and !empty($_POST['data'])) {
+if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 	$lines=explode("\n", $_POST['data']);
 	foreach ($lines as $line) {
 		$line=explode(":", $line);
