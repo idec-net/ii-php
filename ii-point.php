@@ -175,4 +175,40 @@ if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 	}
 }
 
+if($opts[0] == 'x' and $opts[1] == 'file') {
+	$filenames=array_keys($public_files);
+	
+	if(
+		!empty($_POST['pauth']) &&
+		checkUser($_POST['pauth']) != false
+	) {
+		// значит юзер "свой", и ему можно качать файлы
+
+		if (
+			!empty($_POST['filename'])
+		) {
+			// значит пользователь запросил файл
+
+			if (
+				in_array($_POST['filename'], $filenames)
+			) {
+				// выдаём файл (наверное, способ слишком примитивен)
+
+				header ('Content-Type: application/octet-stream');
+				echo @file_get_contents($files_directory."/".$_POST['filename']);
+			} else {
+				echo "error: file does not exist";
+			}
+		} else {
+			// иначе выдаём список файлов
+
+			foreach ($filenames as $filename) {
+				echo $filename.":".filesize($files_directory."/".$filename).":".$public_files[$filename]."\n";
+			}
+		}
+	} else {
+		echo "error: no auth";
+	}
+}
+
 ?>
