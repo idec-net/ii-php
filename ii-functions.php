@@ -211,26 +211,36 @@ function savemsg($h,$e,$t) {
 	}
 }
 
-function displayEchoList($echos=false, $small=false) {
-	header('content-type: text/plain; charset=utf-8');
-	if(!$echos) {
-		global $echolist;
-		if(!$small) {
-			foreach($echolist as $echo) {
-				$countMessages=count(explode("\n",getecho($echo[0])))-1;
-				echo $echo[0].":".$countMessages.":".$echo[1]."\n";
-			}
-		} else {
-			foreach($echolist as $echo) {
-				echo $echo[0]."\n";
+function displayEchoList($echos=null, $counter=false, $descriptions=false) {
+	global $echolist;
+
+	$public_echolist_assoc=[];
+
+	foreach ($echolist as $line) {
+		$public_echolist_assoc[$line[0]]=$line[1];
+	}
+
+	if ($echos===null) {
+		$echos=array_keys($public_echolist_assoc);
+	}
+
+	foreach ($echos as $echo) {
+		if(checkEcho($echo)) {
+			echo $echo;
+		}
+
+		if ($counter) {
+			echo ":".(count(explode("\n",getecho($echo)))-1);
+		}
+
+		if ($descriptions) {
+			echo ":";
+			if (isset($public_echolist_assoc[$echo])) {
+				echo $public_echolist_assoc[$echo];
 			}
 		}
-	} else {
-		foreach($echos as $echo) {
-			if(checkEcho($echo)) {
-				echo $echo.":".(count(explode("\n",getecho($echo)))-1)."\n";
-			}
-		}
+
+		echo "\n";
 	}
 }
 

@@ -128,24 +128,24 @@ if ($opts[0] == 'u' and $opts[1] == 'point') {
 	} else die('error: unknown');
 }
 
-if($opts[0] == 'list.txt') {
-	displayEchoList();
-}
-
 if($opts[0] == 'blacklist.txt') {
 	echo implode("", $blacklist);
 }
 
-if($opts[0] == 'x' and $opts[1] == 't') {
+if($opts[0] == 'list.txt') {
+	displayEchoList(null, $counter=true, $descriptions=true);
+}
+
+if($opts[0] == 'x' and $opts[1] == 'c') {
 	$echos=[];
-	for ($x=2;$x<count($opts);$x++) {
+	for ($x=2;$x<$optc;$x++) {
 		$echos[]=$opts[$x];
 	}
-	displayEchoList($echos);
+	displayEchoList($echos, $counter=true, $descriptions=false);
 }
 
 if($opts[0] == 'x' and $opts[1] == 'small-echolist') {
-	displayEchoList(null, $small=true);
+	displayEchoList(null, $counter=false, $descriptions=false);
 }
 
 if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
@@ -203,7 +203,9 @@ if($opts[0] == 'x' and $opts[1] == 'file') {
 			// иначе выдаём список файлов
 
 			foreach ($filenames as $filename) {
-				echo $filename.":".filesize($files_directory."/".$filename).":".$public_files[$filename]."\n";
+				if (file_exists($files_directory."/".$filename)) {
+					echo $filename.":".filesize($files_directory."/".$filename).":".$public_files[$filename]."\n";
+				}
 			}
 		}
 	} else {
