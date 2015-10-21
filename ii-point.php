@@ -192,10 +192,9 @@ if($opts[0] == 'x' and $opts[1] == 'file') {
 			if (
 				in_array($_POST['filename'], $filenames)
 			) {
-				// выдаём файл (наверное, способ слишком примитивен)
+				// выдаём файл в base64 (наверное, способ слишком примитивен)
 
-				header ('Content-Type: application/octet-stream');
-				echo @file_get_contents($files_directory."/".$_POST['filename']);
+				echo b64c(@file_get_contents($files_directory."/".$_POST['filename']));
 			} else {
 				echo "error: file does not exist";
 			}

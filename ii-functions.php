@@ -27,8 +27,8 @@ function checkHash($s) {
 }
 
 function checkEcho($echo) {
-	$filter='/^[a-z0-9_!.-]{1,60}$/';
-	if(!preg_match($filter,$echo)) return false;
+	$filter='/^[a-z0-9_!-.]{1,60}.[a-z0-9_!-]{1,60}$/';
+	if(!preg_match($filter,$echo) or strpos($echo, ".")===false) return false;
 	else return true;
 }
 
