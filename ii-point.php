@@ -192,9 +192,14 @@ if($opts[0] == 'x' and $opts[1] == 'file') {
 			if (
 				in_array($_POST['filename'], $filenames)
 			) {
-				// выдаём файл в base64 (наверное, способ слишком примитивен)
+				// выдаём файл
+				if (ob_get_level()) {
+					ob_end_clean();
+				}
+				$file_path=$files_directory."/".$_POST['filename'];
 
-				echo b64c(@file_get_contents($files_directory."/".$_POST['filename']));
+				@readfile($file_path);
+				exit();
 			} else {
 				echo "error: file does not exist";
 			}
@@ -202,7 +207,7 @@ if($opts[0] == 'x' and $opts[1] == 'file') {
 			// иначе выдаём список файлов
 
 			foreach ($filenames as $filename) {
-				if (file_exists($files_directory."/".$filename)) {
+				if (@file_exists($files_directory."/".$filename)) {
 					echo $filename.":".filesize($files_directory."/".$filename).":".$public_files[$filename]."\n";
 				}
 			}

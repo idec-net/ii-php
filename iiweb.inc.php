@@ -341,14 +341,14 @@ class IIWeb extends IIFrontend {
 	function printEchos() {
 		$text="";
 		$arr=$this->echoes;
-		$text.="<h3>Выберите эхоконференцию</h3>\n<table class='echolist'>";
+		$text.="<table class='echolist'><tr><th>Эхоконференция</th><th>Сообщения</th><th>Описание</th></tr>";
 		foreach($arr as $echo) {
 			if(!file_exists("echo/".$echo[0])) {
 				$countmsgs=0;
 			} else {
 				$countmsgs=count(explode("\n", getecho($echo[0])))-1;
 			}
-			$text.="<tr><td><a href='?echo=".$echo[0]."'>".$echo[0]."</a></td><td>[$countmsgs]</td><td>".$echo[1]."</td></tr>";
+			$text.="<tr><td><a href='?echo=".$echo[0]."'>".$echo[0]."</a></td><td>$countmsgs</td><td>".$echo[1]."</td></tr>";
 		}
 		$text.="</table>";
 		return $text;
@@ -389,7 +389,7 @@ class IIWeb extends IIFrontend {
 			$output.='<p id="nav">';
 			for($pr = '', $i =1; $i <= $num_pages; $i++)
 			{
-				$output.=$pr=(($i == 1 || $i == $num_pages || abs($i-$page) < 2) ? ($i == $page ? " [$i] " : ' <a href="'.$myaddr.'&amp;page='.$i.'">'.$i.'</a> ') : (($pr == ' ... ' || $pr == '')? '' : ' ... '));
+				$output.=$pr=(($i == 1 || $i == $num_pages || abs($i-$page) < 2) ? ($i == $page ? "<span class='active'>$i</span>" : "<a href=\"".$myaddr."&amp;page=".$i."\">$i</a>") : (($pr == "<span class='inactive'>...</span>" || $pr == '')? '' : "<span class='inactive'>...</span>"));
 			}
 			$output.='</p>';
 		} else {
