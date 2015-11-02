@@ -103,7 +103,7 @@ function reparse($string) {
 				$string[$i] = preg_replace("/====/", "====</pre>", $string[$i]);
 			}
 		}
-		if(!$pre_flag && substr($string[$i], 0, 4)=='&gt;') {
+		if(!$pre_flag && preg_match("/^\s?[a-zA-Z0-9_-]{0,20}(&gt;)+.+$/", $string[$i])) {
 			$string[$i]="<span class='quote'>".$string[$i]."</span>";
 		}
 	}
