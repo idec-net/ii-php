@@ -13,7 +13,7 @@ body {
 	max-width: 900px;
 	min-height: 100%;
 	text-align: center;
-	margin:55pt auto;
+	margin:50pt auto;
 }
 
 div.links {
@@ -98,9 +98,10 @@ a.sender:hover {
 	color: #e65100;
 }
 
-.date, .quote {
+.date, .quote, .comment {
 	color: rgba(0,0,0,0.54);
 }
+
 .subj {
 	color: black;
 }

@@ -106,6 +106,10 @@ function reparse($string) {
 		if(!$pre_flag && preg_match("/^\s?[a-zA-Z0-9_-]{0,20}(&gt;)+.+$/", $string[$i])) {
 			$string[$i]="<span class='quote'>".$string[$i]."</span>";
 		}
+
+		if(!$pre_flag) {
+			$string[$i]=preg_replace("/(^|\s+)(PS|P.S|ps|ЗЫ|З.Ы|\/\/|#).+$/", "<span class='comment'>\\0</span>", $string[$i]);
+		}
 	}
 	$string = implode("<br />", $string);
 	return $string;
