@@ -1,6 +1,8 @@
 <?php
 date_default_timezone_set("UTC");
 
+if (!file_exists("config.php")) copy("config.default.php", "config.php");
+
 require_once("config.php");
 require_once("mysql-functions.php");
 require_once("blacklist-func.php");
