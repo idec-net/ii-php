@@ -217,4 +217,10 @@ if($opts[0] == 'x' and $opts[1] == 'file') {
 	}
 }
 
+if ($opts[0] == 'x' and $opts[1] == 'features') {
+	// пишем, какие дополнительные фичи умеет данная нода
+
+	echo "u/e\nu/push\nlist.txt\nblacklist.txt\nx/c\nx/file\nx/small-echolist";
+}
+
 ?>
