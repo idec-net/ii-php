@@ -1,7 +1,10 @@
 <?php
 require("ii-functions.php");
 
-session_set_cookie_params(172800);
+ini_set("session.gc_maxlifetime", $session_lifetime);
+ini_set("session.cookie_lifetime", $session_lifetime);
+
+session_set_cookie_params($session_lifetime);
 session_start();
 
 class IIFrontend {
@@ -103,12 +106,12 @@ function reparse($string) {
 				$string[$i] = preg_replace("/====/", "====</pre>", $string[$i]);
 			}
 		}
-		if(!$pre_flag && preg_match("/^\s?[a-zA-Z0-9_-]{0,20}(&gt;)+.+$/", $string[$i])) {
+		if(!$pre_flag && preg_match("/^\s?[a-zA-Zа-яА-Я0-9_-]{0,20}(&gt;)+.+$/i", $string[$i])) {
 			$string[$i]="<span class='quote'>".$string[$i]."</span>";
 		}
 
 		if(!$pre_flag) {
-			$string[$i]=preg_replace("/(^|\s+)(PS|P.S|ps|ЗЫ|З.Ы|\/\/|#).+$/", "<span class='comment'>\\0</span>", $string[$i]);
+			$string[$i]=preg_replace("/(^|\s+)(PS|P\.S|ЗЫ|З\.Ы|\/\/|#).+$/i", "<span class='comment'>\\0</span>", $string[$i]);
 		}
 	}
 	$string = implode("<br />", $string);

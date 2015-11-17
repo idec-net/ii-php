@@ -38,4 +38,6 @@ $public_files=[
 	"123.txt" => "Какой-нибудь текстовый файл"
 ];
 
+$session_lifetime=1728000; //used for web-interface
+
 ?>
