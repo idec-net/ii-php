@@ -4,8 +4,15 @@ date_default_timezone_set("UTC");
 if (!file_exists("config.php")) copy("config.default.php", "config.php");
 
 require_once("config.php");
-require_once("mysql-functions.php");
 require_once("blacklist-func.php");
+
+if($usemysql) {
+	require_once("mysql-functions.php");
+	
+	global $db,$mysqldata;
+	$md=$mysqldata;
+	$db=new SQLuser($md["host"],$md["db"],$md["user"],$md["pass"],$md["table"]);
+}
 
 $logmessages=[];
 

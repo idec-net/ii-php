@@ -52,12 +52,6 @@ class SQLuser {
 	}
 }
 
-if($usemysql) {
-	global $db,$mysqldata;
-	$md=$mysqldata;
-	$db=new SQLuser($md["host"],$md["db"],$md["user"],$md["pass"],$md["table"]);
-}
-
 function getMessages($msgids) {
 	global $db;
 	$messages=[];

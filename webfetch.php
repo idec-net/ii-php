@@ -35,11 +35,15 @@ function parseFullEchoList($echobundle) {
 	return $echos2d;
 }
 
-function fetch_messages($config) {
+function fetch_messages($config, $one_request_limit=20, $fetch_limit=false, $xcenable=false) {
+	// xcenable - not implemented, fetch_limit - only N messages at time
 	$echoesToFetch=array_slice($config,1);
 	$adress=$config[0];
 
-	$echoBundle=getfile($adress."u/e/".implode("/",$echoesToFetch));
+	$bundleAdress=$adress."u/e/".implode("/", $echoesToFetch);
+	($fetch_limit!=false) ? $bundleAdress.="/-".intval($fetch_limit).":".intval($fetch_limit) : false;
+
+	$echoBundle=getfile($bundleAdress);
 	$remoteEchos2d=parseFullEchoList(applyBlackList($echoBundle));
 
 	foreach($echoesToFetch as $echo) {
@@ -48,7 +52,7 @@ function fetch_messages($config) {
 		$remoteMessages=$remoteEchos2d[$echo];
 
 		$difference=array_diff($remoteMessages, $localMessages);
-		$difference2d=array_chunk($difference, 20);
+		$difference2d=array_chunk($difference, $one_request_limit);
 		
 		foreach ($difference2d as $diff) {
 			echo $echo."\n";
