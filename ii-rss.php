@@ -1,10 +1,9 @@
 <?php
 require("ii-functions.php");
 
-define('CWD', getcwd()."/feeds");
-$limit=63000;
+define('CWD', getcwd()."/".$rss_cache_directory);
 
-class RssParser
+class NewsParser
 {
 	public $obj;
 	public $items;
@@ -12,25 +11,58 @@ class RssParser
 	function __construct($adress)
 	{
 		$this->obj=simplexml_load_file($adress);
-		$this->items=$this->obj->channel->item;
+		$this->items=$this->fetch_elements($this->obj);
+		if ($this->items == NULL) return NULL;
+	}
+
+	function fetch_elements($source)
+	{
+		if ($source->channel) {
+			$type="rss";
+			return $source->channel->item;
+		} elseif ($source->entry) {
+			$type="atom"; // значит линкуем это дело для похожести на rss
+			
+			foreach ($source->entry as $entry) {
+				// так, преобразуем-ка это дело указателями
+				// в результате Atom почти неотличим от RSS ;)
+
+				$entry->id["isPermaLink"]=false;
+				$entry->guid=(string)$entry->id;
+				$entry->description=(string)$entry->summary;
+				$entry->link=$entry->link["href"];
+			}
+			return $source->entry;
+		} else {
+			return NULL; // фиг, ничего не распарсили
+		}
 	}
 }
 
-function ii_rss($feedname,$adress,$echo,$include_link=true) {
+function ii_rss($feedname, $adress, $echo, $include_link=true, $post_old_feeds=true, $point="Новостной_робот") {
 	if(!file_exists(CWD."/".$feedname)) {
+			$first_run=true; // если нет кэша, значит rss-постинг идёт впервые
 			touch(CWD."/".$feedname);
-			return;
-	}
+	} else $first_run=false;
 
 	$news=file(CWD."/".$feedname);
-	$news2=new RssParser($adress);
+	$news2=new NewsParser($adress);
+	if (!$news2) return false; // значит вместо rss/atom нам подсунули дичь
+
 	$guids=fopen(CWD."/".$feedname, "a");
 
 	for($j=count($news2->items)-1;$j>=0;$j--) {
 		$remguid=(string)$news2->items[$j]->guid;
 		
 		if(!in_array($remguid."\n", $news)) {
-			ii_post($news2->items[$j],$echo,$include_link);
+
+			if (!$first_run or ($post_old_feeds and $first_run)) {
+				/* когда запускаем скрипт впервые, то смотрим, надо ли постить
+					старые записи: если не надо, то это условие не сработает;
+					иначе всё, как обычно
+				*/
+				ii_post($news2->items[$j], $echo, $include_link, $point);
+			}
 			fputs($guids,$remguid."\n");
 		}
 	}
@@ -40,11 +72,10 @@ function ii_rss($feedname,$adress,$echo,$include_link=true) {
 	unset($news2);
 }
 
-function ii_post($item,$echo,$include_link=true) {
-	global $limit;
+function ii_post($item, $echo, $include_link=true, $point) {
+	global $rss_msgtext_limit, $nodeName;
 
-	$point="Новостной_робот";
-	$adress="mira, 1";
+	$adress=$nodeName.", 1";
 
 	$subject=$item->title;
 	$subject=strip_tags($subject);
@@ -74,11 +105,11 @@ function ii_post($item,$echo,$include_link=true) {
 		$message.="\nСсылка: ".$link;
 	}
 
-	if (count($message)<$limit) {
+	if (count($message) < $rss_msgtext_limit) {
 		echo "Saving article '".$subject."'\n";
 		msg_to_ii($echo,$message,$point,$adress,time(),"All",$subject,"");
 	} else {
-		$message=str_split($message,$limit);
+		$message=str_split($message, $rss_msgtext_limit);
 		$lenn=count($message);
 
 		for($i=0;$i<$lenn;$i++) {

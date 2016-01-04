@@ -16,6 +16,13 @@ if($usemysql) {
 
 $logmessages=[];
 
+// а здесь пара костылей для совместимости, чтобы люди обновились
+
+if (!isset($rss_cache_directory)) $rss_cache_directory="./feeds";
+if (!isset($rss_msgtext_limit)) $rss_msgtext_limit=$msgtextlimit-400;
+
+// если будете регулярно обновляться, то я вот это 个 уберу
+
 function logm($str) {
 	global $logmessages;
 	echo $str;

@@ -32,6 +32,7 @@ $echolist=[
 ];
 
 $files_directory="./";
+$rss_cache_directory="./feeds";
 
 $public_files=[
 	"README.md" => "Справка по PHP-ноде",
@@ -39,5 +40,6 @@ $public_files=[
 ];
 
 $session_lifetime=1728000; //used for web-interface
+$rss_msgtext_limit=$msgtextlimit-400; // used for rss parser
 
 ?>
