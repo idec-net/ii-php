@@ -7,12 +7,11 @@ function getfile($add) {
 	return file_get_contents($add);
 }
 function getLocalEcho($echo) {
-	if(!file_exists("echo/".$echo)) return [];
-	else {
-		$file=file_get_contents("echo/".$echo);
-		$arr=explode("\n",$file);
-		return $arr;
-	}
+	$file=getecho($echo);
+	if (!$file) return [];
+
+	$arr=explode("\n", $file);
+	return $arr;
 }
 
 function parseFullEchoList($echobundle) {
@@ -71,10 +70,6 @@ function fetch_messages($config, $one_request_limit=20, $fetch_limit=false, $xce
 				}
 			}
 		}
-	}
-	global $logerrors;
-	if($logerrors) {
-		writeLog();
 	}
 }
 

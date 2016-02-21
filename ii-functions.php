@@ -14,27 +14,12 @@ if($usemysql) {
 	$db=new SQLuser($md["host"],$md["db"],$md["user"],$md["pass"],$md["table"]);
 }
 
-$logmessages=[];
-
 // а здесь пара костылей для совместимости, чтобы люди обновились
 
 if (!isset($rss_cache_directory)) $rss_cache_directory="./feeds";
 if (!isset($rss_msgtext_limit)) $rss_msgtext_limit=$msgtextlimit-400;
 
 // если будете регулярно обновляться, то я вот это 个 уберу
-
-function logm($str) {
-	global $logmessages;
-	echo $str;
-	$logmessages[]=$str;
-}
-
-function writeLog() {
-	global $logmessages,$logfile;
-	@$fp=fopen($logfile, "w");
-	@fputs($fp, implode("", $logmessages));
-	@fclose($fp);
-}
 
 function checkHash($s) {
 	if(!b64d($s)) {
@@ -189,15 +174,15 @@ function validatemsg($m) {
 function savemsg($h,$e,$t) {
 	global $savemsgOverride, $usemysql, $msgtextlimit;
 	if (!validatemsg($t)) {
-		logm("invalid message: ".$h."\n");
+		echo "invalid message: ".$h."\n";
 		return 0;
 	}
 	if(!checkEcho($e)) {
-		logm("error: wrong echo ".$e."\n"); 
+		echo "error: wrong echo ".$e."\n"; 
 		return 0;
 	}
 	if(strlen($t)>$msgtextlimit) {
-		logm("error: msg big\n");
+		echo "error: msg big\n";
 		return 0;
 	}
 	if(isBlackListed($h)) {
@@ -218,11 +203,11 @@ function savemsg($h,$e,$t) {
 			$fp = fopen('echo/'.$e, 'ab'); fwrite($fp, $h."\n"); fclose($fp);
 			return $h;
 		} else {
-			logm("error: '".$h."' this message exists\n");
+			echo "error: '".$h."' this message exists\n";
 			return 0;
 		}
 	} else {
-		logm("error: incorrect msgid\n");
+		echo "error: incorrect msgid\n";
 		return 0;
 	}
 }

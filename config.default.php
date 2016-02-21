@@ -7,9 +7,6 @@ $nodeName="lenina"; //message fingerprint for your ii node
 $postlimit=70000; //limit for base64 pointmsg
 $msgtextlimit=65536; //limit for message text (with headers)
 
-$logfile="ii-log.txt";
-$logerrors=false;
-
 $usemysql=false;
 $mysqldata=array(
 	"host" => "localhost",
@@ -30,6 +27,8 @@ $echolist=[
 	["linux.14", "Эха для линуксоидов"],
 	["ii.soft.14", "Анонсы и обсуждение ПО"]
 ];
+
+$rss_echoareas=["mlp.15", "develop.16"];
 
 $files_directory="./";
 $rss_cache_directory="./feeds";
