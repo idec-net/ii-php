@@ -1,5 +1,6 @@
 <?php
 date_default_timezone_set("UTC");
+require_once("transports.php");
 
 if (!file_exists("config.php")) copy("config.default.php", "config.php");
 
