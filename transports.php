@@ -179,7 +179,7 @@ class TextBase extends TransportCommon implements AbstractTransport {
 	function saveMessage($msgid=NULL, $echo, $message, $raw) {
 		if (!$raw) $message=$this->makeRaw($message);
 		if ($msgid == NULL) {
-			$msgid=hsh($rawmsg);
+			$msgid=hsh($message);
 		}
 		$this->appendMsgList($echo, [$msgid]);
 
