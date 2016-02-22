@@ -20,16 +20,16 @@ $auth=0;
 $authname=0;
 
 if ($opts[0] == 'e') {
-	echo implode("\n", $transport->getMsgList($opts[1]))."\n";
+	echo implode("\n", $access->getMsgList($opts[1]))."\n";
 }
 
 if ($opts[0] == 'm') {
-	echo $transport->getRawMessage($opts[1]);
+	echo $access->getRawMessage($opts[1]);
 }
 
 if ($opts[0] == 'u' and $opts[1] == 'm') {
 	$msgids=array_slice($opts, 2);
-	$messages=$transport->getRawMessages($msgids);
+	$messages=$access->getRawMessages($msgids);
 
 	foreach($messages as $msgid => $text) {
 		echo $msgid.":".b64c($text)."\n";
@@ -54,7 +54,7 @@ if ($opts[0] == 'u' and $opts[1] == 'e') {
 		$messages=[];
 
 		foreach ($echoareas as $echo) {
-			$slice = $transport->getMsgList($echo, $a, $b);
+			$slice = $access->getMsgList($echo, $a, $b);
 
 			if (count($slice) > 0) {
 				$buffer.=$echo."\n".implode("\n", $slice)."\n";
@@ -66,7 +66,7 @@ if ($opts[0] == 'u' and $opts[1] == 'e') {
 
 	} else {
 		foreach($work_options as $echo) { 
-			echo $echo."\n".implode("\n", $transport->getMsgList($echo))."\n";
+			echo $echo."\n".implode("\n", $access->getMsgList($echo))."\n";
 		}
 	}
 }
@@ -101,7 +101,7 @@ if ($opts[0] == 'u' and $opts[1] == 'point') {
 }
 
 if($opts[0] == 'blacklist.txt') {
-	echo implode("", $blacklist);
+	echo implode("", $access->blacklist);
 }
 
 if($opts[0] == 'list.txt') {
@@ -125,7 +125,7 @@ if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 		$echoarea=trim($line[0]);
 		$msgid=trim($line[1]);
 
-		$index=$transport->getMsgList($echoarea);
+		$index=$access->getMsgList($echoarea);
 		$maxElement=count($index)-1;
 
 		$search=array_search($msgid, $index);
@@ -142,7 +142,7 @@ if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 
 if($opts[0] == 'x' and $opts[1] == 'file') {
 	$filenames=array_keys($public_files);
-	
+
 	if(
 		!empty($_POST['pauth']) &&
 		checkUser($_POST['pauth']) != false
