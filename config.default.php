@@ -6,6 +6,7 @@ $nodeName="lenina"; //message fingerprint for your ii node
 $postlimit=70000; //limit for base64 pointmsg
 $msgtextlimit=65536; //limit for message text (with headers)
 
+$blacklist_file="blacklist.txt";
 $mysqldata=array(
 	"host" => "localhost",
 	"db" => "test",
