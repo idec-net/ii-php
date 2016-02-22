@@ -7,84 +7,9 @@ ini_set("session.cookie_lifetime", $session_lifetime);
 session_set_cookie_params($session_lifetime);
 session_start();
 
-class IIFrontend {
-	public $echoesPath;
-	public $nomessage=array(
-		"echo" => "none",
-		"time" => "0",
-		"from" => "",
-		"addr" => "",
-		"to" => "",
-		"subj" => "",
-		"msg" => "no message",
-		"repto" => false,
-		"id" => ""
-	);
-
-	function __construct($echoespath) {
-		$this->echoesPath=$echoespath;
-	}
-	function getMessagesArray($msgids) {
-		global $usemysql;
-		if($usemysql) {
-			$msgsArr=getMessages($msgids);
-		} else {
-			$msgsArr=[];
-			foreach($msgids as $msgid) {
-				$msgsArr[$msgid]=getmsg($msgid);
-			}
-		}
-		return $msgsArr;
-	}
-	function parseMessage($plainMessage, $msgid) {
-		$msgone=htmlspecialchars($plainMessage);
-		$msg=explode("\n",$msgone);
-		$meta=[];
-		$tags=explode("/",$msg[0]);
-		$newtags=[];
-
-		for($i=0;$i<count($tags);$i+=2) {
-			if(!empty($tags[$i+1])) {
-				$newtags[$tags[$i]]=$tags[$i+1];
-			} else {
-				$newtags[$tags[$i]]=false;
-			}
-		}
-
-		if(isset($newtags['repto'])) {
-			$repto=$newtags['repto'];
-		} else {
-			$repto=false;
-		}
-		if(count($msg)>=8) {
-			$meta=array(
-				"echo" => $msg[1],
-				"time" => $msg[2],
-				"from" => $msg[3],
-				"addr" => $msg[4],
-				"to" => $msg[5],
-				"subj" => $msg[6],
-				"msg" => implode("\n", array_slice($msg, 8)),
-				"repto" => $repto,
-				"id" => $msgid
-			);
-		} else {
-			$meta=$this->nomessage;
-		}
-		
-		return $meta;
-	}
-	function getMsgList($echo) {
-		if(checkEcho($echo) && file_exists($this->echoesPath.$echo)) {
-			$msgs=explode("\n",getecho($echo));
-			array_pop($msgs);
-		} else $msgs=[];
-		return $msgs;
-	}
-}
-
 //поддержка ссылок и разметки
 function reparse($string) {
+	global $access;
 	$pre_flag = false;
 	$string = explode ("\n", $string);
 	for ($i = 0; $i < count ($string); ++$i) {
@@ -92,7 +17,7 @@ function reparse($string) {
 		$string[$i] = preg_replace("/([\w]+:\/\/[\w-?&;#~=\.\/\@]+[\w\/])/i","<a target=\"_blank\" href=\"$1\">$1</a>",$string[$i]);
 		$string[$i] = preg_replace("/([\w-?&;#~=\.\/]+\@(\[?)[a-zA-Z0-9\-\.]+\.([a-zA-Z]{2,3}|[0-9]{1,3})(\]?))/i","<a href=\"mailto:$1\">$1</a>",$string[$i]);
 		$echo_check = preg_replace("/(.*)\<a target=\"_blank\" href=\"ii:\/\/(.+?)\"\>(.+?)\<\/a\>(.*)/", "$2", $string[$i]);
-		if (checkEcho($echo_check)) {
+		if ($access->checkEcho($echo_check)) {
 			$string[$i] = preg_replace("/target=\"_blank\" href=\"ii:\/\/(.+?)\"/s", "class=\"iilink\" href=\"?echo=$1\"", $string[$i]);
 		} else {
 			$string[$i] = preg_replace("/target=\"_blank\" href=\"ii:\/\/(.+?)\"/s", "class=\"iilink\" href=\"?msgid=$1\"", $string[$i]);
@@ -138,12 +63,12 @@ function generate_csrf_token() {
 	return $_SESSION['csrf_token'] = substr(str_shuffle('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'), 0, 20);
 }
 
-class IIWeb extends IIFrontend {
+class IIWeb {
 	public $onPage;
 	public $echoes;
 
-	function __construct($echoareas, $tpldir, $onpage) {
-		parent::__construct("echo/");
+	function __construct($echoareas, $tpldir, $onpage, $access) {
+		$this->access=$access;
 		$this->onPage=$onpage;
 		$this->echoes=$echoareas;
 		
@@ -177,13 +102,8 @@ class IIWeb extends IIFrontend {
 				$receiver="All";
 			} elseif($remote["msgid"]) {
 				$msgid=$remote["msgid"];
-				$output=$this->getMessagesArray([$msgid]);
-				
-				if (isset($output[$msgid])) {
-					$message=$this->parseMessage($output[$msgid], $msgid);
-				} else {
-					$message=$this->nomessage;
-				}
+				$message=$this->access->getMessage($msgid);
+
 				$echo=$message['echo'];
 				$repto=$msgid;
 				$receiver=$message['from'];
@@ -210,13 +130,8 @@ class IIWeb extends IIFrontend {
 				}
 			} elseif ($remote["msgid"]) {
 				$msgid=$remote["msgid"];
-				$output=$this->getMessagesArray([$msgid]);
+				$message=$this->access->getMessage($msgid);
 	
-				if (isset($output[$msgid])) {
-					$message=$this->parseMessage($output[$msgid], $msgid);
-				} else {
-					$message=$this->nomessage;
-				}
 				$echo=$message['echo'];
 				$header="<a class='toplink' href='?echo=$echo'>$echo</a>";
 
@@ -262,12 +177,12 @@ class IIWeb extends IIFrontend {
 			"form-errors" => null // а здесь строка
 		];
 		
-		if (checkData("echo") && checkEcho($_GET['echo']))
+		if (checkData("echo") && $this->access->checkEcho($_GET['echo']))
 		{
 			if (isset($_GET["new"])) $userDataArray["writenew"]=true;
 			$userDataArray["echoname"]=$_GET["echo"];
 		
-		} elseif(checkData("msgid") && checkHash($_GET["msgid"]))
+		} elseif(checkData("msgid") && $this->access->checkHash($_GET["msgid"]))
 		{
 			if (isset($_GET["reply"])) $userDataArray["reply"]=true;
 			$userDataArray["msgid"]=$_GET["msgid"];
@@ -350,11 +265,7 @@ class IIWeb extends IIFrontend {
 		$arr=$this->echoes;
 		$text.="<table class='echolist'><tr><th>Эхоконференция</th><th>Сообщения</th><th>Описание</th></tr>";
 		foreach($arr as $echo) {
-			if(!file_exists("echo/".$echo[0])) {
-				$countmsgs=0;
-			} else {
-				$countmsgs=count(explode("\n", getecho($echo[0])))-1;
-			}
+			$countmsgs=$this->access->countMessages($echo[0]);
 			$text.="<tr><td><a href='?echo=".$echo[0]."'>".$echo[0]."</a></td><td>$countmsgs</td><td>".$echo[1]."</td></tr>";
 		}
 		$text.="</table>";
@@ -362,7 +273,7 @@ class IIWeb extends IIFrontend {
 	}
 	function printMsgs($echo) {
 		$output="";
-		$arr=$this->getMsgList($echo);
+		$arr=$this->access->getMsgList($echo);
 		$pnumber=$this->onPage;
 		
 		// постраничная навигация; править осторожно, т.к. это магия
@@ -382,15 +293,9 @@ class IIWeb extends IIFrontend {
 			// сообщения выводятся в обратном порядке
 			$msglist=array_reverse($msglist);
 	
-			$messages=$this->getMessagesArray($msglist);
+			$messages=$this->access->getMessages($msglist);
 			foreach($msglist as $msgid) {
-				if(isset($messages[$msgid])) {
-					$parsedMessage=$this->parseMessage($messages[$msgid], $msgid);
-				} else {
-					$parsedMessage=$this->nomessage;
-				}
-	
-				$output.=$this->printMsg($parsedMessage)."\n";
+				$output.=$this->printMsg($messages[$msgid])."\n";
 			}
 	
 			$output.='<p id="nav">';

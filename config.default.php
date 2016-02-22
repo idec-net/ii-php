@@ -1,13 +1,11 @@
 <?php
 
 $pushpassword="";
-$savemsgOverride=false; //do Not set to true without need
 $nodeName="lenina"; //message fingerprint for your ii node
 
 $postlimit=70000; //limit for base64 pointmsg
 $msgtextlimit=65536; //limit for message text (with headers)
 
-$usemysql=false;
 $mysqldata=array(
 	"host" => "localhost",
 	"db" => "test",
@@ -15,6 +13,9 @@ $mysqldata=array(
 	"pass" => "",
 	"table" => "ii-messages"
 );
+
+$transport=new TextBase("echo/", "msg/");
+// $transport=new MysqlBase($mysqldata, "echo/"); // для mysql-базы
 
 $parr=[
 	["","root"],

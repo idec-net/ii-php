@@ -20,27 +20,19 @@ $auth=0;
 $authname=0;
 
 if ($opts[0] == 'e') {
-	echo getecho($opts[1]);
+	echo implode("\n", $transport->getMsgList($opts[1]))."\n";
 }
 
 if ($opts[0] == 'm') {
-	echo getmsg($opts[1]);
+	echo $transport->getRawMessage($opts[1]);
 }
 
 if ($opts[0] == 'u' and $opts[1] == 'm') {
 	$msgids=array_slice($opts, 2);
-	
-	if($usemysql) {
-		$messages=getMessages($msgids);
-	} else {
-		$messages=[];
-		foreach($msgids as $msgid) {
-			$messages[$msgid]=getmsg($msgid);
-		}
-	}
+	$messages=$transport->getRawMessages($msgids);
 
-	foreach($msgids as $msgid) {
-		echo $msgid.":".base64_encode($messages[$msgid])."\n";
+	foreach($messages as $msgid => $text) {
+		echo $msgid.":".b64c($text)."\n";
 	}
 }
 
@@ -62,16 +54,9 @@ if ($opts[0] == 'u' and $opts[1] == 'e') {
 		$messages=[];
 
 		foreach ($echoareas as $echo) {
-			$all_messages_rawarray=explode("\n", getecho($echo));
-			$all_messages=[];
-			foreach ($all_messages_rawarray as $msgid) {
-				if (!empty($msgid) and $msgid!="\n") {
-					$all_messages[]=$msgid;
-				}
-			}
-			$slice=array_slice($all_messages, $a, $b);
-			
-			if (count($slice)>0) {
+			$slice = $transport->getMsgList($echo, $a, $b);
+
+			if (count($slice) > 0) {
 				$buffer.=$echo."\n".implode("\n", $slice)."\n";
 			} else {
 				$buffer.=$echo."\n";
@@ -81,21 +66,8 @@ if ($opts[0] == 'u' and $opts[1] == 'e') {
 
 	} else {
 		foreach($work_options as $echo) { 
-			echo $echo."\n".getecho($echo);
+			echo $echo."\n".implode("\n", $transport->getMsgList($echo))."\n";
 		}
-	}
-}
-
-if (!empty($_POST['upush'])) {
-	$contents = $_POST['upush']; $nodeAuth = $_POST['nauth']; $echoarea = $_POST['echoarea'];
-	if (empty($pushpassword) or ($nodeAuth != $pushpassword)) {
-		die('auth error');
-	}
-	$lines = explode("\n",$contents);
-
-	for ($x=0;$x<count($lines);$x++) {
-		$a = explode(":",$lines[$x]);
-		savemsg($a[0],$echoarea,b64d($a[1]));
 	}
 }
 
@@ -144,10 +116,6 @@ if($opts[0] == 'x' and $opts[1] == 'c') {
 	displayEchoList($echos, $counter=true, $descriptions=false);
 }
 
-if($opts[0] == 'x' and $opts[1] == 'small-echolist') {
-	displayEchoList(null, $counter=false, $descriptions=false);
-}
-
 if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 	$lines=explode("\n", $_POST['data']);
 	foreach ($lines as $line) {
@@ -156,11 +124,8 @@ if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 
 		$echoarea=trim($line[0]);
 		$msgid=trim($line[1]);
-		
-		$msgids=getecho($echoarea);
-		$index=explode("\n", $msgids);
-		array_pop($index);
 
+		$index=$transport->getMsgList($echoarea);
 		$maxElement=count($index)-1;
 
 		$search=array_search($msgid, $index);

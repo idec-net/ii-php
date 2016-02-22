@@ -17,9 +17,7 @@ if (
 	checkEcho($_GET['echo'])
 ) {
 	$echo=htmlspecialchars($_GET['echo']);
-	$msglist=explode("\n", getecho($echo));
-	$c=count($msglist);
-	$shown_messages=array_slice($msglist, $c-$limit-1);
+	$shown_messages=$transport->getMsgList($echo, -$limit);
 
 	$feed_title=$echo;
 	$feed_description="Лента эхоконференции ".$echo;
@@ -28,15 +26,14 @@ if (
 	$limit/=2;
 
 	if (!isset($rss_echoareas)) {
-			$rss_echoareas=[];
-			for ($i=0;$i<$take_echoes;$i++) $rss_echoareas[]=$echolist[$i][0];
+		$rss_echoareas=[];
+		for ($i=0;$i<$take_echoes;$i++) $rss_echoareas[]=$echolist[$i][0];
 	}
 
 	$shown_messages=[];
 	foreach ($rss_echoareas as $echo) {
-		$msglist=explode("\n", getecho($echo));
-		$c=count($msglist);
-		$shown_messages=array_merge($shown_messages, array_slice($msglist, $c-$limit-1));
+		$msglist=$transport->getMsgList($echo, -$limit);
+		$shown_messages=array_merge($shown_messages, $msglist);
 	}
 
 	$feed_title="Последние сообщения";
@@ -46,7 +43,7 @@ if (
 
 if (count($shown_messages)>0) {
 	header('Content-Type: text/xml; charset=utf-8', true);
-	
+
 	$rss = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" ?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"></rss>');
 	$channel = $rss->addChild('channel');
 
@@ -59,19 +56,26 @@ if (count($shown_messages)>0) {
 	$build_date = gmdate(DATE_RFC2822, $now);
 	$lastBuildDate = $channel->addChild('lastBuildDate', $build_date);
 
-	foreach ($shown_messages as $msgid) {
-		if (!empty($msgid)) {
-			$msg=explode("\n", htmlspecialchars(getmsg($msgid)));
+	$messages=$transport->getMessages($shown_messages);
+	$keys=array_keys($messages);
+	$check_keys=["subj", "time", "to", "from", "addr", "repto", "msg"];
 
-			$item = $channel->addChild('item');
-			$title = $item->addChild('title', $msg[6]);
-			$pubdate = $item->addChild('pubDate', gmdate(DATE_RFC2822, intval($msg[2])));
-			$link = $item->addChild('link', $webclient_link.'?msgid='.$msgid);
-			$guid = $item->addChild('guid', $msgid);
-			$guid->addAttribute('isPermaLink', 'false');
-			
-			$description = $item->addChild('description', "<b>".$msg[3].' ('.$msg[4].') to '.$msg[5]."</b><br /><br />".implode("<br />\n", array_slice($msg, 8)));
+	foreach ($keys as $msgid) {
+		foreach ($check_keys as $param) {
+			$messages[$msgid][$param]=htmlspecialchars($messages[$msgid][$param]);
 		}
+	}
+
+	foreach ($messages as $msg) {
+		$msgid=$msg["id"];
+		$item = $channel->addChild('item');
+		$title = $item->addChild('title', $msg["subj"]);
+		$pubdate = $item->addChild('pubDate', gmdate(DATE_RFC2822, intval($msg["time"])));
+		$link = $item->addChild('link', $webclient_link.'?msgid='.$msgid);
+		$guid = $item->addChild('guid', $msgid);
+		$guid->addAttribute('isPermaLink', 'false');
+
+		$description = $item->addChild('description', "<b>".$msg["from"].' ('.$msg["addr"].') to '.$msg["to"]."</b><br /><br />".str_replace("\n", "<br />\n", $msg["msg"]));
 	}
 
 	echo $rss->asXML();

@@ -36,8 +36,14 @@ class TransportCommon {
 
 	function makeRaw($message) {
 		if (is_array($message["tags"])) {
-			$message["tags"]=implode("/", $message["tags"]);
+			$fragments=[];
+			foreach ($message["tags"] as $key => $value) {
+				$fragments[]=$key."/".$value;
+			}
+			$message["tags"]=implode("/", $fragments);
+			if ($message["repto"]) $message["tags"]["repto"]=$message["repto"];
 		}
+
 		$rawmsg=$message["tags"]."\n".
 			$message["echo"]."\n".
 			$message["time"]."\n".
@@ -66,7 +72,7 @@ class TransportCommon {
 				"subj" => $msg[6],
 				"msg" => implode("\n", array_slice($msg, 8)),
 				"repto" => $repto,
-				"id" => $msgid
+				"id" => NULL
 			);
 		} else {
 			return $this->nomessage;
@@ -120,7 +126,9 @@ class TextBase extends TransportCommon implements AbstractTransport {
 
 	function getMessage($msgid) {
 		$rawmsg=$this->getRawMessage($msgid);
-		return $this->makeReadable($rawmsg);
+		$readable=$this->makeReadable($rawmsg);
+		$readable["id"]=$msgid;
+		return $readable;
 	}
 
 	function getMessages($msgids) {
@@ -154,7 +162,14 @@ class TextBase extends TransportCommon implements AbstractTransport {
 	}
 
 	function fullEchoList() {
-		return scandir($this->indexdir);
+		$files=scandir($this->indexdir);
+		$echos=[];
+		foreach($files as $echofile) {
+			if ($echofile!="." && $echofile!="..") {
+				$echos[]=$echofile;
+			}
+		}
+		return $echos;
 	}
 
 	function countMessages($echo) {
@@ -188,7 +203,9 @@ class TextBase extends TransportCommon implements AbstractTransport {
 
 		if ($offset) {
 			$a=intval($offset);
-			$b=intval($length);
+
+			if ($length != NULL) $b=intval($length);
+			else $b=NULL;
 
 			$slice=array_slice($list, $a, $b);
 			return $slice;
@@ -223,7 +240,13 @@ class TextBase extends TransportCommon implements AbstractTransport {
 }
 
 class MysqlBase extends TextBase implements AbstractTransport {
-	function __construct($host, $db, $user, $pass, $table, $indexdir="./echo") {
+	function __construct($data, $indexdir="./echo") {
+		$host=$data["host"];
+		$db=$data["db"];
+		$user=$data["user"];
+		$pass=$data["pass"];
+		$table=$data["table"];
+
 		$this->db=new mysqli($host, $user, $pass, $db);
 		$db=$this->db;
 		$q1=$db->query("SET NAMES `utf8`");
@@ -276,7 +299,9 @@ class MysqlBase extends TextBase implements AbstractTransport {
 		$message=$this->prepareInsert($message);
 
 		$this->appendMsgList($echo, [$msgid]);
-		return $this->insertData($message);
+		$this->insertData($message);
+
+		return $msgid;
 	}
 
 	function getMessages($msgids) {
@@ -313,7 +338,7 @@ class MysqlBase extends TextBase implements AbstractTransport {
 		$message=$this->getMessage($msgid);
 		return $this->makeRaw($message);
 	}
-	
+
 	function getRawMessages($msgids) {
 		$messages=$this->getMessages($msgids);
 		$keys=array_keys($messages);
