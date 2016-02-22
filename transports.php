@@ -110,7 +110,7 @@ class TextBase extends TransportCommon implements AbstractTransport {
 
 	function getRawMessage($msgid) {
 		if (file_exists($this->msgdir."/".$msgid)) {
-			return file_get_contents($this->msgdir."/".$msgid);
+			return @file_get_contents($this->msgdir."/".$msgid);
 		} else {
 			return "";
 		}
@@ -198,6 +198,8 @@ class TextBase extends TransportCommon implements AbstractTransport {
 	}
 
 	function getMsgList($echo, $offset=NULL, $length=NULL) {
+		if (!file_exists($this->indexdir."/".$echo)) return [];
+
 		$list=explode("\n", file_get_contents($this->indexdir."/".$echo));
 		array_pop($list);
 
