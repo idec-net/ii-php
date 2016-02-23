@@ -7,20 +7,25 @@ class BaseAccess {
 	}
 
 	function getBlackList($blacklist_file) {
-		return file($blacklist_file);
+		if (file_exists($blacklist_file)) {
+			$file=file_get_contents($blacklist_file);
+			$blacklist=explode("\n", $file);
+			return $blacklist;
+		} else return [];
 	}
 
 	function isBlackListed($msgid) {
-		if(in_array($msgid."\n", $this->blacklist)) {
+		if(in_array($msgid, $this->blacklist)) {
 			return true;
 		} else return false;
 	}
 
 	function applyBlacklist($echo) {
-		foreach($this->blacklist as $msgid) {
-			$echo=str_replace($msgid, "", $echo);
+		$list=[];
+		foreach($echo as $msgid) {
+			if (!in_array($msgid, $this->blacklist)) $list[]=$msgid;
 		}
-		return $echo;
+		return $list;
 	}
 
 	static function checkHash($s) {
@@ -70,7 +75,7 @@ class BaseAccess {
 
 	function getMsgList($echo, $offset=NULL, $length=NULL) {
 		if (!$this->checkEcho($echo)) return [];
-		return $this->applyBlackList($this->transport->getMsgList($echo, $offset, $length));
+		return $this->applyBlacklist($this->transport->getMsgList($echo, $offset, $length));
 	}
 
 	static function validateRawMsg($message) {
