@@ -14,10 +14,10 @@ if (count($echolist)<$take_echoes) $take_echoes=count($echolist);
 
 if (
 	isset($_GET['echo']) &&
-	checkEcho($_GET['echo'])
+	$access->checkEcho($_GET['echo'])
 ) {
 	$echo=htmlspecialchars($_GET['echo']);
-	$shown_messages=$transport->getMsgList($echo, -$limit);
+	$shown_messages=$access->getMsgList($echo, -$limit);
 
 	$feed_title=$echo;
 	$feed_description="Лента эхоконференции ".$echo;
@@ -32,7 +32,7 @@ if (
 
 	$shown_messages=[];
 	foreach ($rss_echoareas as $echo) {
-		$msglist=$transport->getMsgList($echo, -$limit);
+		$msglist=$access->getMsgList($echo, -$limit);
 		$shown_messages=array_merge($shown_messages, $msglist);
 	}
 
@@ -56,7 +56,7 @@ if (count($shown_messages)>0) {
 	$build_date = gmdate(DATE_RFC2822, $now);
 	$lastBuildDate = $channel->addChild('lastBuildDate', $build_date);
 
-	$messages=$transport->getMessages($shown_messages);
+	$messages=$access->getMessages($shown_messages);
 	$keys=array_keys($messages);
 	$check_keys=["subj", "time", "to", "from", "addr", "repto", "msg"];
 
