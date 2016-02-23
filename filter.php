@@ -23,7 +23,7 @@ class BaseAccess {
 	function applyBlacklist($echo) {
 		$list=[];
 		foreach($echo as $msgid) {
-			if (!in_array($msgid, $this->blacklist)) $list[]=$msgid;
+			if (!$this->isBlackListed($msgid)) $list[]=$msgid;
 		}
 		return $list;
 	}
