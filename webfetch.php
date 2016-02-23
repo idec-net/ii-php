@@ -9,7 +9,6 @@ function getfile($add) {
 
 function parseFullEchoList($echobundle) {
 	$echos2d=array();
-	$echobundle=explode("\n",$echobundle);
 	$lastecho="";
 
 	for($i=0;$i<count($echobundle);$i++) {
@@ -37,7 +36,7 @@ function fetch_messages($config, $one_request_limit=20, $fetch_limit=false, $xce
 	$bundleAdress=$adress."u/e/".implode("/", $echoesToFetch);
 	($fetch_limit!=false) ? $bundleAdress.="/-".intval($fetch_limit).":".intval($fetch_limit) : false;
 
-	$echoBundle=getfile($bundleAdress);
+	$echoBundle=explode("\n", getfile($bundleAdress));
 	$remoteEchos2d=parseFullEchoList($access->applyBlackList($echoBundle));
 
 	foreach($echoesToFetch as $echo) {
