@@ -37,11 +37,7 @@ class TransportCommon {
 	function makeRaw($message) {
 		if (is_array($message["tags"])) {
 			if ($message["repto"]) $message["tags"]["repto"]=$message["repto"];
-			$fragments=[];
-			foreach ($message["tags"] as $key => $value) {
-				$fragments[]=$key."/".$value;
-			}
-			$message["tags"]=implode("/", $fragments);
+			$message["tags"]=$this->collectTags($message["tags"]);
 		}
 
 		$rawmsg=$message["tags"]."\n".
@@ -91,6 +87,14 @@ class TransportCommon {
 			}
 		}
 		return $newtags;
+	}
+
+	function collectTags($tags) {
+		$fragments=[];
+		foreach ($tags as $key => $value) {
+			if ($value) $fragments[]=$key."/".$value;
+		}
+		return implode("/", $fragments);
 	}
 }
 
@@ -282,22 +286,18 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 
 	function insertData($msg) {
-		return $this->executeQuery("insert into `$this->tablename` values('".$msg['id']."', '".$msg['tags']."', '".$msg['echoarea']."', '".$msg['date']."', '".$msg['msgfrom']."', '".$msg['addr']."', '".$msg['msgto']."', '".$msg['subj']."', '".$msg['msg']."')");
+		return $this->executeQuery("insert into `$this->tablename` values('".$msg['id']."', '".$msg['tags']."', '".$msg['echo']."', '".$msg['time']."', '".$msg['from']."', '".$msg['addr']."', '".$msg['to']."', '".$msg['subj']."', '".$msg['msg']."')");
 	}
 
 	function saveMessage($msgid=NULL, $echo, $message, $raw) {
 		if ($raw) {
-			if ($msgid == NULL) {
-				$msgid=hsh($message);
-			}
+			if (!$msgid) $msgid=hsh($message);
 			$message=$this->makeReadable($message);
-			$message["id"]=$msgid;
-		} else {
-			$msgid=hsh(serialize($message));
-			$message["id"]=$msgid;
 		}
+		if (!$msgid) $msgid=hsh(serialize($message));
+		$message["id"]=$msgid;
 
-		$message["tags"]=implode("/", $message["tags"]);
+		$message["tags"]=$this->collectTags($message["tags"]);
 		$message=$this->prepareInsert($message);
 
 		$this->appendMsgList($echo, [$msgid]);
@@ -313,27 +313,45 @@ class MysqlBase extends TextBase implements AbstractTransport {
 		$part="";
 	
 		for($i=0;$i<count($msgids);$i++) {
-			$part.="`id`='".$db->db->real_escape_string($msgids[$i])."'";
-			if($i!=count($msgids)-1) { $part.=" OR "; }
+			$part.="`id`='".$db->real_escape_string($msgids[$i])."'";
+			if ($i!=count($msgids)-1) $part.=" OR ";
 		}
-		$query_text="SELECT * FROM `$db->tablename` WHERE ".$part;
-		$query=$db->executeQuery($query_text);
+		$query_text="SELECT * FROM `$this->tablename` WHERE ".$part;
+		$query=$this->executeQuery($query_text);
 	
 		if(!is_object($query)) {
-			echo $db->db->error."\n".$query_text."\n";
+			echo $db->error."\n".$query_text."\n";
 			return [];
 		}
-		while($row=$query->fetch_row()) {
-			$n=[""]; // for compatibility
-			$arr1=array_merge(array_slice($row, 1, 7), $n, array_slice($row, 8));
-	
-			$messages[$row[0]]=implode("\n", $arr1);
+		while($row=$query->fetch_assoc()) {
+			$msgid=$row["id"];
+			$messages[$msgid]=[
+				"id" => $msgid,
+				"tags" => $this->parseTags($row["tags"]),
+				"echo" => $row["echoarea"],
+				"time" => $row["date"],
+				"from" => $row["msgfrom"],
+				"addr" => $row["addr"],
+				"to" => $row["msgto"],
+				"subj" => $row["subj"],
+				"msg" => $row["msg"]
+			];
+			if (isset($messages[$msgid]["tags"]["repto"])) {
+				$messages[$msgid]["repto"]=$messages[$msgid]["tags"]["repto"];
+			} else $messages[$msgid]["repto"]=false;
+		}
+		$got_msgids=array_keys($messages);
+		$difference=array_diff($msgids, $got_msgids);
+		if (count($difference) > 0) {
+			foreach($difference as $msgid) $messages[$msgid]=$this->nomessage;
 		}
 		return $messages;
 	}
 
 	function getMessage($msgid) {
-		return $this->getMessages([$msgid]);
+		$data=$this->getMessages([$msgid]);
+		if (isset($data[$msgid])) return $data[$msgid];
+		else return $this->nomessage;
 	}
 
 	function getRawMessage($msgid) {
@@ -352,7 +370,7 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 
 	function updateMessage($msgid, $message) {
-		$message["tags"]=implode("/", $message["tags"]);
+		$message["tags"]=$this->collectTags($message["tags"]);
 		$message=$this->prepareInsert($message);
 
 		$query_text="UPDATE `$this->tablename` SET `tags`=\"".$message["tags"].
@@ -384,7 +402,7 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 
 	function fullEchoList() {
-		$query_text="SELECT DISTINCT `echoarea` from `$db->tablename`";
+		$query_text="SELECT DISTINCT `echoarea` from `$this->tablename`";
 		$result=$this->executeQuery($query_text);
 
 		if(!is_object($result)) {
