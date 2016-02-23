@@ -2,7 +2,7 @@
 require("ii-functions.php");
 header ('Content-Type: text/plain; charset=utf-8');
 
-if(isset($_GET['q'])) {
+if (isset($_GET['q'])) {
 	$q = $_GET['q'];
 	$opts = [];
 
@@ -12,6 +12,7 @@ if(isset($_GET['q'])) {
 	}
 
 	$optc = count($opts);
+	if ($optc == 0) exit();
 } else {
 	exit();
 }
@@ -23,9 +24,19 @@ if ($opts[0] == 'e') {
 	echo implode("\n", $access->getMsgList($opts[1]))."\n";
 }
 
-if ($opts[0] == 'm') {
+elseif ($opts[0] == 'm') {
 	echo $access->getRawMessage($opts[1]);
 }
+
+elseif ($opts[0] == 'blacklist.txt') {
+	echo implode("", $access->blacklist);
+}
+
+elseif ($opts[0] == 'list.txt') {
+	displayEchoList(null, $counter=true, $descriptions=true);
+}
+
+if ($optc < 2) exit();
 
 if ($opts[0] == 'u' and $opts[1] == 'm') {
 	$msgids=array_slice($opts, 2);
@@ -36,7 +47,7 @@ if ($opts[0] == 'u' and $opts[1] == 'm') {
 	}
 }
 
-if ($opts[0] == 'u' and $opts[1] == 'e') {
+elseif ($opts[0] == 'u' and $opts[1] == 'e') {
 	$work_options=array_slice($opts, 2);
 	$w_opts_count=count($work_options);
 	
@@ -71,44 +82,57 @@ if ($opts[0] == 'u' and $opts[1] == 'e') {
 	}
 }
 
-if ($opts[0] == 'u' and $opts[1] == 'point') {
-	$error=0;
+elseif ($opts[0] == 'u' and $opts[1] == 'point') {
 	if (isset($opts[2]) && isset($opts[3]) &&
 		$opts[2] && $opts[3]
 	) {
 		$au=$opts[2];
 		$ms=$opts[3];
-	} elseif($_POST['pauth'] && $_POST['tmsg']) {
+	} elseif (
+		isset($_POST['pauth']) && isset($_POST['tmsg']) &&
+		$_POST['pauth'] && $_POST['tmsg']
+	) {
 		$au=$_POST['pauth'];
 		$ms=$_POST['tmsg'];
-	} else $error=1;
+	} else die('error: wrong arguments');
 	$addr=0;
-	if(count($ms)>$postlimit) die("error:msg big!");
-	if(!$error) {
-		$pointCheck=checkUser($au);
-		if($pointCheck) {
-			$auth=$au;
-			$authname=$pointCheck[0];
-			$addr=$pointCheck[1];
-		}
-		
-		if($auth and $authname) {
-			pointSend($ms,$authname,$nodeName.", ".$addr);
-		} else {
-			die("error: no auth!");
-		}
-	} else die('error: unknown');
+	if(count($ms)>$postlimit) die("error: msg big!");
+	$pointCheck=checkUser($au);
+	if($pointCheck) {
+		$auth=$au;
+		$authname=$pointCheck[0];
+		$addr=$pointCheck[1];
+	}
+	if($auth and $authname) {
+		pointSend($ms, $authname, $nodeName.", ".$addr);
+	} else {
+		die("error: no auth!");
+	}
 }
 
-if($opts[0] == 'blacklist.txt') {
-	echo implode("", $access->blacklist);
+elseif ($opts[0] == 'u' and $opts[1] == 'push') {
+	if (
+		isset($_POST['nauth']) && isset($_POST['upush']) && isset($_POST['echoarea'])
+	) {
+		global $pushpassword;
+		if (!empty($pushpassword) && $_POST['nauth'] == $pushpassword) {
+			$bundle=explode("\n", $_POST['upush']);
+			foreach ($bundle as $line) {
+				$pieces=explode(":", $line);
+				if (count($pieces)==2) {
+					$msgid=$pieces[0];
+					$message=b64d($pieces[1]);
+					$r=$access->saveMessage($msgid, $_POST['echoarea'], $message, $raw=true);
+					if ($r) echo "message saved: ok: ".$msgid."\n";
+				} else {
+					echo "error: wrong data; continue...";
+				}
+			}
+		} else die("error: no auth");
+	} else die("error: wrong arguments");
 }
 
-if($opts[0] == 'list.txt') {
-	displayEchoList(null, $counter=true, $descriptions=true);
-}
-
-if($opts[0] == 'x' and $opts[1] == 'c') {
+elseif ($opts[0] == 'x' and $opts[1] == 'c') {
 	$echos=[];
 	for ($x=2;$x<$optc;$x++) {
 		$echos[]=$opts[$x];
@@ -116,7 +140,7 @@ if($opts[0] == 'x' and $opts[1] == 'c') {
 	displayEchoList($echos, $counter=true, $descriptions=false);
 }
 
-if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
+elseif ($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 	$lines=explode("\n", $_POST['data']);
 	foreach ($lines as $line) {
 		$line=explode(":", $line);
@@ -140,7 +164,7 @@ if($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 	}
 }
 
-if($opts[0] == 'x' and $opts[1] == 'file') {
+elseif ($opts[0] == 'x' and $opts[1] == 'file') {
 	$filenames=array_keys($public_files);
 
 	if(
@@ -182,7 +206,7 @@ if($opts[0] == 'x' and $opts[1] == 'file') {
 	}
 }
 
-if ($opts[0] == 'x' and $opts[1] == 'features') {
+elseif ($opts[0] == 'x' and $opts[1] == 'features') {
 	// пишем, какие дополнительные фичи умеет данная нода
 
 	echo "u/e\nu/push\nlist.txt\nblacklist.txt\nx/c\nx/file\nx/small-echolist";

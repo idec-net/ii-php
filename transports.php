@@ -36,12 +36,12 @@ class TransportCommon {
 
 	function makeRaw($message) {
 		if (is_array($message["tags"])) {
+			if ($message["repto"]) $message["tags"]["repto"]=$message["repto"];
 			$fragments=[];
 			foreach ($message["tags"] as $key => $value) {
 				$fragments[]=$key."/".$value;
 			}
 			$message["tags"]=implode("/", $fragments);
-			if ($message["repto"]) $message["tags"]["repto"]=$message["repto"];
 		}
 
 		$rawmsg=$message["tags"]."\n".

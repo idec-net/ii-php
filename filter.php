@@ -93,7 +93,7 @@ class BaseAccess {
 	}
 
 	function getRawMessage($msgid) {
-		if ($this->msgidCheck($msgid)) return $this->transport->getRawMsg($msgid);
+		if ($this->msgidCheck($msgid)) return $this->transport->getRawMessage($msgid);
 		else return "";
 	}
 
