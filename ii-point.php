@@ -43,7 +43,7 @@ if ($opts[0] == 'u' and $opts[1] == 'm') {
 	$messages=$access->getRawMessages($msgids);
 
 	foreach($messages as $msgid => $text) {
-		echo $msgid.":".b64c($text)."\n";
+		echo $msgid.":".base64_encode($text)."\n";
 	}
 }
 
