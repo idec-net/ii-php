@@ -29,7 +29,7 @@ elseif ($opts[0] == 'm') {
 }
 
 elseif ($opts[0] == 'blacklist.txt') {
-	echo implode("", $access->blacklist);
+	echo implode("\n", $access->blacklist);
 }
 
 elseif ($opts[0] == 'list.txt') {
