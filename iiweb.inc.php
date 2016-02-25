@@ -62,16 +62,69 @@ function checkData($str, $post=false) {
 function generate_csrf_token() {
 	return $_SESSION['csrf_token'] = substr(str_shuffle('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'), 0, 20);
 }
+function parseRemoteEcholist($remotevar) {
+	global $access;
+	if (!$remotevar) return NULL;
+
+	$cookie_contents=htmlspecialchars(stripslashes($remotevar));
+	$remote_raw_echolist=explode("\n", $cookie_contents);
+	if (
+		!is_array($remote_raw_echolist) or
+		empty($remote_raw_echolist) or
+		count($remote_raw_echolist) > 50
+	) return NULL;
+
+	$remote_true_echolist=[];
+	foreach($remote_raw_echolist as $maybe_echo) {
+		$maybe_echo=trim($maybe_echo);
+		if ($access->checkEcho($maybe_echo)) $remote_true_echolist[]=$maybe_echo;
+	}
+
+	if (count($remote_true_echolist)==0) return NULL;
+	else return $remote_true_echolist;
+}
 
 class IIWeb {
 	public $onPage;
 	public $echoes;
+	public $check_keys=["subj", "time", "to", "from", "addr", "repto", "msg"]; // для репарсинга
 
 	function __construct($echoareas, $tpldir, $onpage, $access) {
 		$this->access=$access;
 		$this->onPage=$onpage;
 		$this->echoes=$echoareas;
-		
+		global $session_lifetime;
+
+		$local_echolist=[];
+
+		foreach ($this->echoes as $line) {
+				$local_echolist[]=$line[0];
+		}
+
+		if (!isset($_COOKIE["echolist"]) or checkData("default_echolist", true)) {
+			setcookie("echolist", b64c(implode("\n", $local_echolist)), time()+$session_lifetime);
+			$simple_echolist=$local_echolist;
+		} elseif (checkData("new_echolist", true)) {
+			$simple_echolist=parseRemoteEcholist($_POST["new_echolist"]);
+			if (!$simple_echolist) $simple_echolist=$local_echolist;
+			setcookie("echolist", b64c(implode("\n", $simple_echolist)), time()+$session_lifetime);
+		} else {
+			$simple_echolist=parseRemoteEcholist(b64d($_COOKIE["echolist"]));
+			if (!$simple_echolist) $simple_echolist=$local_echolist;
+		}
+
+		$complex_echolist=[];
+		foreach ($simple_echolist as $echo) {
+			$found=false;
+			foreach ($this->echoes as $line) {
+				if ($line[0]==$echo) { $found=$line; break; }
+			}
+			if ($found) $complex_echolist[]=$found;
+			else $complex_echolist[]=[$echo, ""];
+		}
+
+		$this->echoes=$complex_echolist;
+
 		$html=""; //html code of page
 
 		$links=[
@@ -82,6 +135,7 @@ class IIWeb {
 		// шаблоны стилей вебморды
 		$htmltop=file_get_contents($tpldir."/top.html");
 		$writerform=file_get_contents($tpldir."/writer-form.html");
+		$settingsform=file_get_contents($tpldir."/settings.html");
 		$htmlbottom=file_get_contents($tpldir."/bottom.html");
 		
 		$html=$htmltop;
@@ -131,7 +185,7 @@ class IIWeb {
 			} elseif ($remote["msgid"]) {
 				$msgid=$remote["msgid"];
 				$message=$this->access->getMessage($msgid);
-	
+
 				$echo=$message['echo'];
 				$header="<a class='toplink' href='?echo=$echo'>$echo</a>";
 
@@ -140,10 +194,17 @@ class IIWeb {
 				} else {
 					$html.=$this->printMsg($message, false, true);
 				}
+			} elseif ($remote["action_settings"]) {
+				$header="Настройки";
+				$html.=$settingsform;
+				$html=str_replace("{list}", implode("\n", $simple_echolist), $html);
+				// form with echoareas view
 			} else {
 				$header="веб-клиент";
-				$links=[];
-	
+				$links=[
+					'<a class="toplink" href="?action=personal">Подписки</a>'
+				];
+
 				$html.=$this->printEchos();
 			}
 		}
@@ -170,6 +231,7 @@ class IIWeb {
 		$userDataArray=[
 			"echoname" => null,
 			"msgid" => null,
+			"action_settings" => false,
 			"writenew" => false,
 			"reply" => false,
 			"formdata-validated" => false,
@@ -189,6 +251,8 @@ class IIWeb {
 		}
 		
 		if (isset($_GET["logout"])) unset($_SESSION["userAuth"]);
+
+		if (checkData("action") && $_GET["action"] == "personal") $userDataArray["action_settings"] = true;
 
 		if (checkData("a", true)) {
 			// значит, юзер написал что-то в форму, проверяем
@@ -225,6 +289,8 @@ class IIWeb {
 		return $userDataArray;
 	}
 	function printMsg($message, $viewonly=false, $plainlink=false) {
+		foreach ($this->check_keys as $param) $message[$param]=htmlspecialchars($message[$param]);
+
 		$styleclass=$viewonly ? " viewonly" : "";
 		$ret="";
 
