@@ -2,42 +2,26 @@
 require("ii-functions.php");
 
 $texttransport=new TextBase("echo/", "msg/");
-
-class newBase extends MysqlBase {
-	function saveMessage($msgid=NULL, $echo, $message, $raw) {
-		if ($raw) {
-			if (!$msgid) $msgid=hsh($message);
-			$message=$this->makeReadable($message);
-		}
-		if (!$msgid) $msgid=hsh(serialize($message));
-		$message["id"]=$msgid;
-
-		$message["tags"]=$this->collectTags($message["tags"]);
-		$message=$this->prepareInsert($message);
-
-		$this->insertData($message);
-
-		return $msgid;
-	}
-}
-
-$db=new newBase($mysqldata);
+$db=new MysqlBase($mysqldata);
 
 $creation=$db->executeQuery("
 CREATE TABLE IF NOT EXISTS `$db->tablename`
 	(
-		`id` varchar(20) NOT NULL primary key,
+		`number` bigint NOT NULL auto_increment,
+		`id` varchar(20) NOT NULL,
 		`tags` text,
-		`echoarea` text not NULL,
-		`date` int not NULL default 0,
+		`echoarea` text NOT NULL,
+		`date` varchar(30) NOT NULL default '0',
 		`msgfrom` text,
 		`addr` text,
 		`msgto` text,
 		`subj` text not NULL,
-		`msg` text not NULL
+		`msg` text not NULL,
+		primary key(number, id)
 	) ENGINE InnoDB default charset='utf8';
 ");
 echo $creation;
+echo $db->db->error;
 
 $echos=$texttransport->fullEchoList();
 
@@ -48,7 +32,7 @@ foreach($echos as $echo) {
 		$message=$texttransport->getMessage($msgid);
 		$db->saveMessage($msgid, $echo, $message, $raw=false);
 		if(substr($db->db->error, 0, 9)!="Duplicate") {
-			echo $db->db->error."\n";
+			echo $db->db->error;
 		}
 	}
 }

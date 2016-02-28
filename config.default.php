@@ -16,7 +16,7 @@ $mysqldata=array(
 );
 
 $transport=new TextBase("echo/", "msg/");
-// $transport=new MysqlBase($mysqldata, "echo/"); // для mysql-базы
+// $transport=new MysqlBase($mysqldata); // для mysql-базы
 
 $parr=[
 	["","root"],

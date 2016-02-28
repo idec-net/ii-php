@@ -7,8 +7,6 @@ interface AbstractTransport {
 	public function deleteMessages($msgids, $echo=NULL);
 
 	public function getMsgList($echo, $offset, $length);
-	public function setMsgList($echo, $list);
-
 	public function deleteEchoarea($echo, $with_contents=true);
 
 	public function getRawMessage($msgid);
@@ -246,27 +244,22 @@ class TextBase extends TransportCommon implements AbstractTransport {
 }
 
 class MysqlBase extends TextBase implements AbstractTransport {
-	function __construct($data, $indexdir="./echo") {
+	function __construct($data) {
 		$host=$data["host"];
-		$db=$data["db"];
+		$db_name=$data["db"];
 		$user=$data["user"];
 		$pass=$data["pass"];
 		$table=$data["table"];
 
-		$this->db=new mysqli($host, $user, $pass, $db);
+		$this->db=new mysqli($host, $user, $pass, $db_name);
+		unset($this->setMsgList);
+
 		$db=$this->db;
 		$q1=$db->query("SET NAMES `utf8`");
 
 		$this->tablename=$table;
 
-		if($db->error) {
-			echo $db->error;
-		}
-
-		if (!file_exists($indexdir)) {
-			mkdir($indexdir, $recursive=true);
-		}
-		$this->indexdir=$indexdir;
+		if ($db->error) die($db->error);
 	}
 
 	function __destruct() {
@@ -286,7 +279,7 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 
 	function insertData($msg) {
-		return $this->executeQuery("insert into `$this->tablename` values('".$msg['id']."', '".$msg['tags']."', '".$msg['echo']."', '".$msg['time']."', '".$msg['from']."', '".$msg['addr']."', '".$msg['to']."', '".$msg['subj']."', '".$msg['msg']."')");
+		return $this->executeQuery("insert into `$this->tablename` values(NULL, '".$msg['id']."', '".$msg['tags']."', '".$msg['echo']."', '".$msg['time']."', '".$msg['from']."', '".$msg['addr']."', '".$msg['to']."', '".$msg['subj']."', '".$msg['msg']."')");
 	}
 
 	function saveMessage($msgid=NULL, $echo, $message, $raw) {
@@ -375,7 +368,7 @@ class MysqlBase extends TextBase implements AbstractTransport {
 
 		$query_text="UPDATE `$this->tablename` SET `tags`=\"".$message["tags"].
 		"\", `echoarea`=\"".$message["echo"].
-		"\", `date`=\"".intval($message["time"]).
+		"\", `date`=\"".$message["time"].
 		"\", `msgfrom`=\"".$message["from"].
 		"\", `addr`=\"".$message["addr"].
 		"\", `msgto`=\"".$message["to"].
@@ -387,18 +380,39 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 
 	function deleteMessage($msgid, $withecho=NULL) {
-		if ($withecho) {
-			$echo=$this->getMessage($msgid)["echo"];
-			$echoContents=$this->getMsgList($echo);
-
-			$key=array_search($msgid, $echoContents);
-			if($key!=false) {
-				unset($echoContents[$key]);
-				$this->setMsgList($echo, $echoContents);
-			}
-		}
 		$query_text="DELETE from `$this->tablename` WHERE `id`=\"$msgid\"";
 		return $this->executeQuery($query_text);
+	}
+
+	function getMsgList($echo, $offset=NULL, $length=NULL) {
+		$query_text="SELECT `id` from `$this->tablename` ".
+			"where `echoarea`=\"$echo\" order by `number`";
+
+		if ($offset) {
+			if ($length != NULL) {
+				$b=intval($length);
+				$query_text.=" LIMIT $b";
+			// и не спрашивайте про следующую строку: это магия!
+			} else $query_text.= "LIMIT 18446744073709551610";
+
+			$a=intval($offset);
+			$query_text.=" OFFSET $a";
+		}
+		$query=$this->executeQuery($query_text);
+
+		if (is_object($query)) {
+			$array=$query->fetch_all();
+			foreach ($array as $key => $value) $array[$key]=$value[0];
+			return $array;
+		} else return [];
+	}
+
+	function countMessages($echo) {
+		$query_text="SELECT count(*) from `$this->tablename` where `echoarea`=\"$echo\"";
+		$result=$this->executeQuery($query_text);
+
+		$count=$result->fetch_row()[0];
+		return $count;
 	}
 
 	function fullEchoList() {
@@ -415,6 +429,13 @@ class MysqlBase extends TextBase implements AbstractTransport {
 			$output[]=$row["echoarea"];
 		}
 		return $output;
+	}
+
+	function deleteEchoarea($echo, $with_contents=true) {
+		$messages=$this->getMsgList($echo);
+		foreach ($messages as $msgid) {
+			$this->deleteMessage($msgid);
+		}
 	}
 }
 
