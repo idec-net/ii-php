@@ -339,23 +339,18 @@ class IIWeb {
 	}
 	function printMsgs($echo) {
 		$output="";
-		$arr=$this->access->getMsgList($echo);
+		$count=$this->access->countMessages($echo);
 		$pnumber=$this->onPage;
-		
+
 		// постраничная навигация; править осторожно, т.к. это магия
 		$myaddr="?echo=".$echo;
-		$all=count($arr);
-		$num_pages=ceil($all/$pnumber);
+		$num_pages=ceil($count/$pnumber);
 		$page=(isset($_GET['page'])) ? (int)$_GET['page'] : $num_pages;
-		if ($page > $num_pages || $page < 1) { $page=$num_pages; }
+		if ($page > $num_pages || $page < 1) $page=$num_pages;
 		$start=$page*$pnumber-$pnumber;
 		
-		if ($all) {
-			$msglist=[];
-			for ($i=$start; $i<$start+$pnumber; $i++) {
-				if (!isset($arr[$i])) break;
-				$msglist[]=$arr[$i];
-			}
+		if ($count) {
+			$msglist=$this->access->getMsgList($echo, $start, $pnumber);
 			// сообщения выводятся в обратном порядке
 			$msglist=array_reverse($msglist);
 	
