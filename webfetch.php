@@ -34,7 +34,7 @@ function fetch_messages($config, $one_request_limit=20, $fetch_limit=false, $xce
 	$adress=$config[0];
 
 	$bundleAdress=$adress."u/e/".implode("/", $echoesToFetch);
-	($fetch_limit!=false) ? $bundleAdress.="/-".intval($fetch_limit).":".intval($fetch_limit) : false;
+	$bundleAdress.=($fetch_limit) ? "/-".$fetch_limit.":".$fetch_limit : "";
 
 	$echoBundle=explode("\n", getfile($bundleAdress));
 	$remoteEchos2d=parseFullEchoList($access->applyBlackList($echoBundle));
