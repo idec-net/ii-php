@@ -1,7 +1,18 @@
 <?php
 require("ii-functions.php");
 
-$texttransport=new TextBase("echo/", "msg/");
+$oldtransport=new TextBase("echo/", "msg/");
+/*
+require_once("old-mysql-transport.php");
+$oldmysqldata=array(
+	"host" => "localhost",
+	"db" => "test",
+	"user" => "root",
+	"pass" => "",
+	"table" => "old-table"
+);
+$oldtransport=new OldMysqlBase($oldmysqldata, "echo/");
+*/
 $db=new MysqlBase($mysqldata);
 
 $creation=$db->executeQuery("
@@ -23,13 +34,13 @@ CREATE TABLE IF NOT EXISTS `$db->tablename`
 echo $creation;
 echo $db->db->error;
 
-$echos=$texttransport->fullEchoList();
+$echos=$oldtransport->fullEchoList();
 
 foreach($echos as $echo) {
-	$msgids=$texttransport->getMsgList($echo);
+	$msgids=$oldtransport->getMsgList($echo);
 	echo "trying to save echo ".$echo."\n";
 	foreach($msgids as $msgid) {
-		$message=$texttransport->getMessage($msgid);
+		$message=$oldtransport->getMessage($msgid);
 		$db->saveMessage($msgid, $echo, $message, $raw=false);
 		if(substr($db->db->error, 0, 9)!="Duplicate") {
 			echo $db->db->error;

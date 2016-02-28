@@ -293,7 +293,6 @@ class MysqlBase extends TextBase implements AbstractTransport {
 		$message["tags"]=$this->collectTags($message["tags"]);
 		$message=$this->prepareInsert($message);
 
-		$this->appendMsgList($echo, [$msgid]);
 		$this->insertData($message);
 
 		return $msgid;
