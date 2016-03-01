@@ -387,23 +387,25 @@ class MysqlBase extends TextBase implements AbstractTransport {
 		$query_text="SELECT `id` from `$this->tablename` ".
 			"where `echoarea`=\"$echo\" order by `number`";
 
-		if ($offset) {
-			if ($length != NULL) {
-				$b=intval($length);
-				$query_text.=" LIMIT $b";
-			// и не спрашивайте про следующую строку: это магия!
-			} else $query_text.= "LIMIT 18446744073709551610";
-
-			$a=intval($offset);
-			$query_text.=" OFFSET $a";
-		}
 		$query=$this->executeQuery($query_text);
 
 		if (is_object($query)) {
 			$array=$query->fetch_all();
 			foreach ($array as $key => $value) $array[$key]=$value[0];
+
+			if ($offset) {
+				$a=intval($offset);
+
+				if ($length != NULL) $b=intval($length);
+				else $b=NULL;
+
+				$slice=array_slice($array, $a, $b);
+				return $slice;
+			}
 			return $array;
-		} else return [];
+		} else {
+			die($this->db->error."\n".$query_text);
+		}
 	}
 
 	function countMessages($echo) {
