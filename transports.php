@@ -384,24 +384,30 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 
 	function getMsgList($echo, $offset=NULL, $length=NULL) {
-		$query_text="SELECT `id` from `$this->tablename` ".
+		$query_text="SELECT `id`, `number` from `$this->tablename` ".
 			"where `echoarea`=\"$echo\" order by `number`";
+
+		if ($offset !== NULL) $a=intval($offset);
+		else $a=NULL;
+		if ($length !== NULL) $b=intval($length);
+		else $b=NULL;
+
+		if ($a === NULL) $query_text.=" asc";
+		elseif ($a < 0) {
+			$a=-$a;
+			$query_text="SELECT * from ($query_text desc LIMIT $a) as tmp order by number asc";
+			if ($b and $b > 0) $query_text.=" LIMIT $b";
+		} else {
+			if (!$b or $b < 0) $b=18446744073709551610;
+			$query_text.=" asc LIMIT $b";
+			if ($a != 0) $query_text.=" OFFSET $a";
+		}
 
 		$query=$this->executeQuery($query_text);
 
 		if (is_object($query)) {
 			$array=$query->fetch_all();
 			foreach ($array as $key => $value) $array[$key]=$value[0];
-
-			if ($offset) {
-				$a=intval($offset);
-
-				if ($length != NULL) $b=intval($length);
-				else $b=NULL;
-
-				$slice=array_slice($array, $a, $b);
-				return $slice;
-			}
 			return $array;
 		} else {
 			die($this->db->error."\n".$query_text);
