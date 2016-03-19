@@ -40,6 +40,10 @@ $public_files=[
 	"123.txt" => "Какой-нибудь текстовый файл"
 ];
 
+$private_files=[
+	"filename.txt" => "Файл, который могут скачивать только поинты"
+];
+
 $session_lifetime=1728000; //used for web-interface
 $rss_msgtext_limit=$msgtextlimit-400; // used for rss parser
 

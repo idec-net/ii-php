@@ -166,43 +166,53 @@ elseif ($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 
 elseif ($opts[0] == 'x' and $opts[1] == 'file') {
 	$filenames=array_keys($public_files);
+	$private_filenames=array_keys($private_files);
 
-	if(
-		!empty($_POST['pauth']) &&
-		checkUser($_POST['pauth']) != false
-	) {
-		// значит юзер "свой", и ему можно качать файлы
+	$files_info=$public_files;
+
+	if (isset($_POST['pauth']) && !empty ($_POST['pauth'])) {
+		$authstr=$_POST['pauth'];
+	} elseif (isset($opts[2]) && !empty($opts[2])) {
+		$authstr=$opts[2];
+	} else $authstr=false;
+
+	if (isset($_POST['filename']) && !empty ($_POST['filename'])) {
+		$request_file=$_POST['filename'];
+	} elseif (isset($opts[3]) && !empty($opts[3])) {
+		$request_file=$opts[3];
+	} else $request_file=false;
+
+	if ($authstr!=false && checkUser($authstr) != false) {
+		// значит юзер "свой", и ему можно качать "скрытые" файлы
+		$filenames=array_merge($filenames, $private_filenames);
+		$files_info=array_merge($files_info, $private_files);
+	}
+
+	if ($request_file) {
+		// значит пользователь запросил файл
 
 		if (
-			!empty($_POST['filename'])
+			in_array($request_file, $filenames)
 		) {
-			// значит пользователь запросил файл
-
-			if (
-				in_array($_POST['filename'], $filenames)
-			) {
-				// выдаём файл
-				if (ob_get_level()) {
-					ob_end_clean();
-				}
-				$file_path=$files_directory."/".$_POST['filename'];
-
-				@readfile($file_path);
-				exit();
-			} else {
-				echo "error: file does not exist";
+			// выдаём файл
+			if (ob_get_level()) {
+				ob_end_clean();
 			}
+			$file_path=$files_directory."/".$request_file;
+
+			@readfile($file_path);
+			exit();
 		} else {
-			// иначе выдаём список файлов
-
-			foreach ($filenames as $filename) {
-				if (@file_exists($files_directory."/".$filename)) {
-					echo $filename.":".filesize($files_directory."/".$filename).":".$public_files[$filename]."\n";
-				}
-			}
+			echo "error: file does not exist or wrong authstr";
 		}
 	} else {
-		echo "error: no auth";
+		// иначе выдаём список файлов
+
+		foreach ($filenames as $filename) {
+			if (@file_exists($files_directory."/".$filename)) {
+				echo $filename.":".filesize($files_directory."/".$filename).":".$files_info[$filename]."\n";
+			}
+		}
 	}
 }
 
