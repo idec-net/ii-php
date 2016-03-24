@@ -1,0 +1,28 @@
+{errors}
+<h3>Произвести чистку по чёрному списку</h3>
+<form method="post" action="?">
+<input type="hidden" name="blacklist-clear" value="1">
+{token}
+<input class="submbtn" type="submit" value="Очистить">
+</form>
+<h3>Удалить определённые сообщения</h3>
+<form method="post" action="?">
+<textarea name="messages-clear" class="txt" placeholder="Введите по msgid на строку">
+</textarea>
+{token}
+<input class="submbtn" type="submit" value="Удалить">
+</form>
+<h3>Удалить экоконференцию</h3>
+<form method="post" action="?">
+<select name="echoarea-delete">
+{options}
+</select>
+{token}
+<input class="submbtn" type="submit" value="Удалить эху">
+</form>
+<h3>Правка сообщения в базе</h3>
+<form method="post" action="?">
+<input placeholder="Введите msgid" class="txt" type="text" name="edit-message">
+{token}
+<input class="submbtn" type="submit" value="Править">
+</form>
