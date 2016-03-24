@@ -19,7 +19,7 @@ function checkData($str, $post=false) {
 	else return false;
 }
 function generate_csrf_token() {
-	return $_SESSION['csrf_token'] = substr(str_shuffle('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'), 0, 20);
+	return $_SESSION['sysop_csrf_token'] = substr(str_shuffle('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'), 0, 20);
 }
 class SysopAdm {
 	function __construct($tpldir, $transport, $access) {
@@ -42,19 +42,21 @@ class SysopAdm {
 			if ($remote["delmessages"]) {
 				foreach ($remote["delmessages"] as $msgid) {
 					$transport->deleteMessage($msgid, $withecho=true);
-					$html.="deleted msgid ".$msgid."<br />\n";
+					$remote["debug-messages"].="deleted msgid ".$msgid."<br />\n";
 				}
+				$html.=$htmlmain;
 			} elseif ($remote["delechoarea"]) {
 				$msgids=$access->getMsgList($remote["delechoarea"]);
 				foreach ($msgids as $msgid) {
 					$transport->deleteMessage($msgid, $withecho=true);
-					$html.="deleted msgid ".$msgid." from echo ".$remote["delechoarea"]."<br />\n";
+					$remote["debug-messages"].="deleted msgid ".$msgid." from echo ".$remote["delechoarea"]."<br />\n";
 				}
+				$html.=$htmlmain;
 			} elseif ($remote["clearblacklist"]) {
 				$msgids=$access->blacklist;
 				foreach ($msgids as $msgid) {
 					$transport->deleteMessage($msgid, $withecho=true);
-					$html.="deleted msgid ".$msgid."<br />\n";
+					$remote["debug-messages"].="deleted msgid ".$msgid."<br />\n";
 				}
 				$html.=$htmlmain;
 			} elseif ($remote["editmessage"]) {
@@ -73,6 +75,7 @@ class SysopAdm {
 				$html.=$htmlmain;
 			}
 		} else {
+			// не авторизован - вводи пароль
 			$html.=$authform;
 		}
 
@@ -81,8 +84,8 @@ class SysopAdm {
 		foreach($links as $link) { $menu_links.=$link; }
 		$html=str_replace("{links}", $menu_links, $html);
 		$html=str_replace("{header}", $header, $html);
-		$html=str_replace("{errors}", $remote["auth-errors"], $html);
-		$html=str_replace("{token}", '<input name="csrf_token" type="hidden" value="'.generate_csrf_token().'" />', $html);
+		$html=str_replace("{errors}", $remote["debug-messages"], $html);
+		$html=str_replace("{token}", '<input name="sysop_csrf_token" type="hidden" value="'.generate_csrf_token().'" />', $html);
 
 		$echolist=$transport->fullEchoList();
 		$selects="";
@@ -99,7 +102,7 @@ class SysopAdm {
 
 		$userDataArray=[
 			"authorized" => false,
-			"auth-errors" => "",
+			"debug-messages" => "",
 			"editmessage" => null,
 			"updatemessage-text" => null,
 			"delmessages" => null,
@@ -119,7 +122,7 @@ class SysopAdm {
 					$userDataArray["authorized"]=true;
 				} else {
 					$sysop_auth=false;
-					$userDataArray["auth-errors"].="Неверный пароль";
+					$userDataArray["debug-messages"].="Неверный пароль<br />\n";
 				}
 			} else {
 				$sysop_auth=false;
@@ -130,22 +133,27 @@ class SysopAdm {
 
 		if (!$userDataArray["authorized"]) return $userDataArray;
 
+		if (!(isset($_SESSION['sysop_csrf_token']) && isset($_POST['sysop_csrf_token']) && $_SESSION['sysop_csrf_token'] == @$_POST['sysop_csrf_token'])) {
+			// csrf не отправлен или неверный, так что прерываем обработку формы
+			return $userDataArray;
+		}
+
 		if (checkData("blacklist-clear", true)) {
 			$userDataArray["clearblacklist"]=true;
 		}
-		elseif (checkData("messages-clear")) {
-			$userDataArray["messages-clear"]=explode("\n", $_POST["messages-clear"]);
+		elseif (checkData("messages-clear", true)) {
+			$userDataArray["delmessages"]=explode("\r\n", $_POST["messages-clear"]);
 		}
 		elseif (checkData("echoarea-delete", true)) {
 			$echo=$_POST["echoarea-delete"];
 			if ($this->access->checkEcho($echo)) {
 				$userDataArray["delechoarea"]=$echo;
-			} else $userDataArray["auth-errors"].="Неправильная эха";
+			} else $userDataArray["debug-messages"].="Неправильная эха<br />\n";
 		}
 		elseif (checkData("edit-message", true)) {
 			$msgid=$_POST["edit-message"];
 			$userDataArray["editmessage"]=$msgid;
-			if (!$this->access->checkHash($msgid)) $userDataArray["auth-errors"].="Неправильный msgid!";
+			if (!$this->access->checkHash($msgid)) $userDataArray["debug-messages"].="Неправильный msgid!<br />\n";
 			else {
 				if (checkData("edit-text", true)) {
 					$userDataArray["updatemessage-text"]=$_POST["edit-text"];
