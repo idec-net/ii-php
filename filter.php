@@ -2,6 +2,7 @@
 class BaseAccess {
 	function __construct($transport, $blacklist_file, $msgtextlimit) {
 		$this->msgtextlimit=$msgtextlimit;
+		$this->blacklist_file=$blacklist_file;
 		$this->blacklist=$this->getBlackList($blacklist_file);
 		$this->transport=$transport;
 	}
@@ -112,7 +113,7 @@ class BaseAccess {
 
 	function getMessage($msgid) {
 		if ($this->msgidCheck($msgid)) return $this->transport->getMessage($msgid);
-		else return $transport->nomessage;
+		else return $this->transport->nomessage;
 	}
 
 	function getMessages($msgids) {
