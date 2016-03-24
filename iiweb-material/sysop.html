@@ -5,12 +5,17 @@
 {token}
 <input class="submbtn" type="submit" value="Очистить">
 </form>
-<h3>Удалить определённые сообщения</h3>
+<h3>Добавить msgid в чёрный список</h3>
 <form method="post" action="?">
-<textarea name="messages-clear" class="txt" placeholder="Введите по msgid на строку">
-</textarea>
+<input placeholder="Введите msgid" class="txt" type="text" name="blacklist-add">
 {token}
-<input class="submbtn" type="submit" value="Удалить">
+<input class="submbtn" type="submit" value="ОК">
+</form>
+<h3>Правка сообщения в базе</h3>
+<form method="post" action="?">
+<input placeholder="Введите msgid" class="txt" type="text" name="edit-message">
+{token}
+<input class="submbtn" type="submit" value="Править">
 </form>
 <h3>Удалить экоконференцию</h3>
 <form method="post" action="?">
@@ -20,9 +25,15 @@
 {token}
 <input class="submbtn" type="submit" value="Удалить эху">
 </form>
-<h3>Правка сообщения в базе</h3>
+<h3>Правка чёрного списка</h3>
 <form method="post" action="?">
-<input placeholder="Введите msgid" class="txt" type="text" name="edit-message">
+<textarea name="blacklist" class="txt" placeholder="Введите по msgid на строку">{blacklist}</textarea>
 {token}
-<input class="submbtn" type="submit" value="Править">
+<input class="submbtn" type="submit" value="Сохранить">
+</form>
+<h3>Удалить определённые сообщения</h3>
+<form method="post" action="?">
+<textarea name="messages-clear" class="txt" placeholder="Введите по msgid на строку"></textarea>
+{token}
+<input class="submbtn" type="submit" value="Удалить">
 </form>

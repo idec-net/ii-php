@@ -61,8 +61,7 @@ class SysopAdm {
 				$html.=$htmlmain;
 			} elseif ($remote["editmessage"]) {
 				if ($remote["updatemessage-text"]) {
-					$rawmsg=str_replace("\r", "", $remote["updatemessage-text"]);
-					$readableMsg=$transport->makeReadable($rawmsg);
+					$readableMsg=$transport->makeReadable($remote["updatemessage-text"]);
 					$transport->updateMessage($remote["editmessage"], $readableMsg);
 				}
 				$msg=$transport->getRawMessage($remote["editmessage"]);
@@ -70,6 +69,15 @@ class SysopAdm {
 				$html=str_replace("{message}", $msg, $html);
 				$html=str_replace("{msgid}", $remote["editmessage"], $html);
 				$links[]="<a class='toplink' href='?'>Назад</a>";
+			} elseif ($remote["blacklist-add"]) {
+				//blacklist-add
+				file_put_contents($access->blacklist_file, "\n".$remote["blacklist-add"], FILE_APPEND);
+				$access->blacklist[]=$remote["blacklist-add"];
+				$html.=$htmlmain;
+			} elseif ($remote["updateblacklist-text"]) {
+				file_put_contents($access->blacklist_file, $remote["updateblacklist-text"]);
+				$access->blacklist=$access->getBlackList($access->blacklist_file);
+				$html.=$htmlmain;
 			} else {
 				// главная страница
 				$html.=$htmlmain;
@@ -85,6 +93,7 @@ class SysopAdm {
 		$html=str_replace("{links}", $menu_links, $html);
 		$html=str_replace("{header}", $header, $html);
 		$html=str_replace("{errors}", $remote["debug-messages"], $html);
+		$html=str_replace("{blacklist}", implode("\n", $access->blacklist), $html);
 		$html=str_replace("{token}", '<input name="sysop_csrf_token" type="hidden" value="'.generate_csrf_token().'" />', $html);
 
 		$echolist=$transport->fullEchoList();
@@ -107,7 +116,9 @@ class SysopAdm {
 			"updatemessage-text" => null,
 			"delmessages" => null,
 			"delechoarea" => null,
-			"clearblacklist" => false
+			"clearblacklist" => false,
+			"blacklist-add" => null,
+			"updateblacklist-text" => null
 		];
 
 		if (isset($_GET["logout"])) {
@@ -156,9 +167,16 @@ class SysopAdm {
 			if (!$this->access->checkHash($msgid)) $userDataArray["debug-messages"].="Неправильный msgid!<br />\n";
 			else {
 				if (checkData("edit-text", true)) {
-					$userDataArray["updatemessage-text"]=$_POST["edit-text"];
+					$userDataArray["updatemessage-text"]=str_replace("\r", "", $_POST["edit-text"]);
 				}
 			}
+		}
+		elseif (checkData("blacklist-add", true)) {
+			$msgid=$_POST["blacklist-add"];
+			$userDataArray["blacklist-add"]=$msgid;
+		}
+		elseif (checkData("blacklist", true)) {
+			$userDataArray["updateblacklist-text"]=str_replace("\r", "", $_POST["blacklist"]);
 		}
 
 		return $userDataArray;
