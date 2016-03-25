@@ -4,6 +4,7 @@ body {
 	line-height: 1.5;
 	background-color:#EDECEC;
 }
+
 * {
 	box-sizing: border-box;
 }
@@ -184,7 +185,7 @@ table.echolist {
 }
 
 table.echolist tr {
-	border-bottom: 1px solid #888888;
+	border-bottom: 1px solid #ccc;
 }
 table.echolist tr:last-child {
 	border-bottom: none;
@@ -194,4 +195,15 @@ table.echolist td,th {
 }
 table.echolist th {
 	word-break: break-all;
+}
+.message-container {
+	padding: 0px !important;
+	margin: 0px !important;
+}
+.message-container .message, .message-container .message-with-repto {
+	margin: 0px !important;
+	box-shadow: none !important;
+}
+tr td:not(.message-container) {
+	border-top: 2px solid #aaa;
 }

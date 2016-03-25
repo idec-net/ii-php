@@ -91,7 +91,8 @@ class IIWeb {
 
 	function __construct ($echoareas, $tpldir, $onpage, $access,
 		$interface_name="веб-интерфейс IDEC",
-		$default_title="Всё для спокойного общения"
+		$default_title="Всё для спокойного общения",
+		$display_last_msg=true
 	) {
 		$this->access=$access;
 		$this->onPage=$onpage;
@@ -100,6 +101,7 @@ class IIWeb {
 
 		$this->interfacename=$interface_name;
 		$this->pageTitle=$default_title;
+		$this->display_last_message=$display_last_msg;
 
 		$local_echolist=[];
 
@@ -348,6 +350,13 @@ class IIWeb {
 		foreach($arr as $echo) {
 			$countmsgs=$this->access->countMessages($echo[0]);
 			$text.="<tr><td><a href='?echo=".$echo[0]."'>".$echo[0]."</a></td><td>$countmsgs</td><td>".$echo[1]."</td></tr>";
+			if ($this->display_last_message) { // отображаем последнее сообщение в списке эх
+				$msglist=$this->access->getMsgList($echo[0], -1, 1); // получаем последний msgid
+				if (count($msglist)!=1) continue;
+				$msgid=$msglist[0];
+				$message=$this->access->getMessage($msgid);
+				$text.="<tr><td class='message-container' colspan='3'>".$this->printMsg($message)."</td></tr>";
+			}
 		}
 		$text.="</table>";
 		return $text;

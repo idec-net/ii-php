@@ -7,6 +7,7 @@ $ii_web=new IIWeb($echolist, "./iiweb-material", 20, $access);
 	Дополнительно:
 		$interface_name - название вебморды
 		$default_title - заголовок страницы
+		$display_last_msg - отображать последнее сообщение эхи на главной
 */
 
 ?>
