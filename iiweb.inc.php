@@ -89,11 +89,17 @@ class IIWeb {
 	public $echoes;
 	public $check_keys=["subj", "time", "to", "from", "addr", "repto", "msg"]; // для репарсинга
 
-	function __construct($echoareas, $tpldir, $onpage, $access) {
+	function __construct ($echoareas, $tpldir, $onpage, $access,
+		$interface_name="веб-интерфейс IDEC",
+		$default_title="Всё для спокойного общения"
+	) {
 		$this->access=$access;
 		$this->onPage=$onpage;
 		$this->echoes=$echoareas;
 		global $session_lifetime;
+
+		$this->interfacename=$interface_name;
+		$this->pageTitle=$default_title;
 
 		$local_echolist=[];
 
@@ -154,7 +160,7 @@ class IIWeb {
 				$echo=$remote["echoname"];
 				$repto=false;
 				$receiver="All";
-			} elseif($remote["msgid"]) {
+			} elseif ($remote["msgid"]) {
 				$msgid=$remote["msgid"];
 				$message=$this->access->getMessage($msgid);
 
@@ -172,12 +178,16 @@ class IIWeb {
 			// иначе юзер хочет что-то посмотреть, либо что-то неправильно
 			if ($remote["echoname"]) {
 				$echo=$remote["echoname"];
-	
-				if($remote["writenew"]) {
+
+				if ($remote["writenew"]) {
+					$title="Ответ в $echo";
+
 					$header="<a class='toplink' href='?echo=$echo'>$echo</a>";
 					$html.=$this->printForm($writerform, $echo);
 				} else {
 					$header=$echo;
+					$title="Эха $echo";
+
 					$links[]='<a class="toplink" href="?echo={header}">Обновить</a>';
 					$links[]='<a class="toplink" href="?echo={header}&amp;new">Новое</a>';
 					$html.=$this->printMsgs($echo);
@@ -191,16 +201,19 @@ class IIWeb {
 
 				if ($remote["reply"]) {
 					$html.=$this->printForm($writerform, $message["echo"], $message["subj"], "Ответ", $this->printMsg($message, true, false), "");
+					$title="Ответ на $msgid";
 				} else {
 					$html.=$this->printMsg($message, false, true);
+					$title="Сообщение $msgid";
 				}
 			} elseif ($remote["action_settings"]) {
 				$header="Настройки";
+				$title="Настройки";
 				$html.=$settingsform;
 				$html=str_replace("{list}", implode("\n", $simple_echolist), $html);
 				// form with echoareas view
 			} else {
-				$header="веб-клиент";
+				$header=$this->interfacename;
 				$links=[
 					'<a class="toplink" href="?action=personal">Подписки</a>'
 				];
@@ -210,11 +223,13 @@ class IIWeb {
 		}
 		// заканчиваем формировать html код страницы
 
+		if (!isset($title)) $title=$this->pageTitle;
 		$html.=$htmlbottom;
 		$menu_links="";
 		foreach($links as $link) { $menu_links.=$link; }
 		$html=str_replace("{links}", $menu_links, $html);
 		$html=str_replace("{header}", $header, $html);
+		$html=str_replace("{title}", $title, $html);
 		
 		$errortext=$remote["form-errors"] ? "<div class='message message-with-repto viewonly'>".$remote['form-errors']."</div>" : "";
 		$passinput=(!isset($_SESSION["userAuth"])) ? '<input class="txt" type="password" placeholder="Строка авторизации" name="authstr" />' : "";
@@ -353,12 +368,12 @@ class IIWeb {
 			$msglist=$this->access->getMsgList($echo, $start, $pnumber);
 			// сообщения выводятся в обратном порядке
 			$msglist=array_reverse($msglist);
-	
+
 			$messages=$this->access->getMessages($msglist);
 			foreach($msglist as $msgid) {
 				$output.=$this->printMsg($messages[$msgid])."\n";
 			}
-	
+
 			$output.='<p id="nav">';
 			for($pr = '', $i =1; $i <= $num_pages; $i++)
 			{

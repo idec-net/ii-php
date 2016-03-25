@@ -33,7 +33,7 @@ class SysopAdm {
 		$htmlbottom=file_get_contents($tpldir."/bottom.html");
 		$html=$htmltop;
 		$links=[];
-		$header="Панель сисопа";
+		$header=$title="Панель сисопа";
 
 		$remote=$this->fetchUserData();
 		if ($remote["authorized"]) {
@@ -92,6 +92,7 @@ class SysopAdm {
 		foreach($links as $link) { $menu_links.=$link; }
 		$html=str_replace("{links}", $menu_links, $html);
 		$html=str_replace("{header}", $header, $html);
+		$html=str_replace("{title}", $title, $html);
 		$html=str_replace("{errors}", $remote["debug-messages"], $html);
 		$html=str_replace("{blacklist}", implode("\n", $access->blacklist), $html);
 		$html=str_replace("{token}", '<input name="sysop_csrf_token" type="hidden" value="'.generate_csrf_token().'" />', $html);
