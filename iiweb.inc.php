@@ -308,26 +308,28 @@ class IIWeb {
 	function printMsg($message, $viewonly=false, $plainlink=false) {
 		foreach ($this->check_keys as $param) $message[$param]=htmlspecialchars($message[$param]);
 
-		$styleclass=$viewonly ? " viewonly" : "";
+		$styleclass=$viewonly ? "viewonly " : "";
+		$styleclass.=$message['repto'] ? "message-with-repto" : "message";
 		$ret="";
 
 		$msgid=$message['id'];
 		$plainMessagelink=$plainlink ? "ii-point.php?q=/m/".$msgid : "?msgid=$msgid";
 
+		$ret.= "<div class='$styleclass'>";
+		$ret.="<a name='$msgid' class='plain' href='$plainMessagelink'>#</a>&nbsp;&nbsp;";
+
 		if($message['repto']) {
-			$ret.= "<div class='message-with-repto$styleclass'>";
-			$ret.= "<a class='subj' href='#".$message['repto']."'>".$message['subj']."</a> ";
+			$ret.= "<a class='subj' href='#".$message['repto']."'>".$message['subj']."</a>";
 		} else {
-			$ret.= "<div class='message$styleclass'>";
-			$ret.= "<span class='subj'>".$message['subj']."</span> ";
+			$ret.= "<span class='subj'>".$message['subj']."</span>";
 		}
-		$ret.="<a name='$msgid' href='$plainMessagelink'>#</a>&nbsp;&nbsp;";
-		$ret.= "<span class='date'>".date("Y-m-d H:i:s", $message['time']). "</span>";
-		
+		$ret.="<br />";
 		$ret.=$viewonly ? "<span class='sender'>" : "<a class='reply sender' href='?msgid=".$msgid."&amp;reply'>";
 		$ret.= $message['from']." (".$message['addr'].") → ".$message['to'];
 		$ret.=$viewonly ? "</span>\n" : "</a>";
-		
+
+		$ret.= "&nbsp;&nbsp;–&nbsp;&nbsp;<span class='date'>".date("H:i:s Y-m-d", $message['time'])."</span>";
+
 		$ret.="<br /><br />\n<span class='msgtext'>".reparse($message['msg'])."</span>\n";
 
 		$ret.="</div>";

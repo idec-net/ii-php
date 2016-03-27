@@ -37,7 +37,7 @@ div.links {
 	font-weight:bold;
 	float: left;
 	line-height: 40pt;
-	margin: 0px 20pt;
+	margin: 0px 15pt;
 }
 
 .links h1 a {
@@ -86,24 +86,23 @@ a:hover {
 .links a:active {
 	background: #0097a7;
 }
+a.sender:hover {
+	color: #e65100;
+}
+a.plain {
+	font-size: 13pt;
+}
 
 .message {
 	background: #e0f7fa;
 }
-.sender {
-	float: right;
-	font-weight: bold;
-	color: black;
-}
-a.sender:hover {
-	color: #e65100;
-}
 
-.date, .quote, .comment {
+.date, .quote, .comment, .sender {
 	color: rgba(0,0,0,0.54);
 }
 
 .subj {
+	font-size: 13pt;
 	color: black;
 }
 p#nav {
