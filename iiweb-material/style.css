@@ -142,6 +142,33 @@ form {
 	text-align: left;
 	border: none;
 }
+.new-echolist {
+	width: 48% !important;
+	float: left;
+}
+
+table.small {
+	width: 48% !important;
+	float: right;
+}
+
+.submit-wrapper {
+	float: left;
+	text-align: center;
+	width: 48%;
+	padding: 10pt;
+}
+
+@media (max-width: 699px) {
+	.new-echolist, table.small {
+		width: inherit !important;
+		float: none;
+	}
+	.submit-wrapper {
+		width: 100%;
+	}
+}
+
 select {
 	appearance: none;
 	-webkit-appearance:none;

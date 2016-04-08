@@ -1,8 +1,11 @@
 <h3>Подписки на эхоконференции</h3>
 
 <form method="post">
-<textarea class="txt" placeholder="Вводите по эхе на каждую строку..." name="new_echolist">{list}</textarea>
+<textarea class="new-echolist txt" placeholder="Вводите по эхе на каждую строку..." name="new_echolist">{list}</textarea>
+{small-echolist}
 <br />
+<div class="submit-wrapper">
 <label><input type="checkbox" name="default_echolist" value="1">Вернуться к обычному набору эх</label><br /><br />
 <input class="submbtn" type="submit" value="Сохранить" />
+</div>
 </form>

@@ -97,6 +97,7 @@ class IIWeb {
 		$this->access=$access;
 		$this->onPage=$onpage;
 		$this->echoes=$echoareas;
+		$this->original_echolist=$echoareas;
 		global $session_lifetime;
 
 		$this->interfacename=$interface_name;
@@ -213,6 +214,13 @@ class IIWeb {
 				$title="Настройки";
 				$html.=$settingsform;
 				$html=str_replace("{list}", implode("\n", $simple_echolist), $html);
+				$text="<table class='echolist small'><tr><th>Эхоконференция</th><th>Описание</th></tr>";
+				foreach ($this->original_echolist as $line) {
+					$text.="<tr><td>$line[0]</td><td>".$line[1]."</td></tr>";
+				}
+				$text.="</table>";
+
+				$html=str_replace("{small-echolist}", $text, $html);
 				// form with echoareas view
 			} else {
 				$header=$this->interfacename;
