@@ -90,8 +90,8 @@ class IIWeb {
 	public $check_keys=["subj", "time", "to", "from", "addr", "repto", "msg"]; // для репарсинга
 
 	function __construct ($echoareas, $tpldir, $onpage, $access,
-		$interface_name="веб-интерфейс IDEC",
-		$default_title="Всё для спокойного общения",
+		$interface_name=null,
+		$default_title=null,
 		$display_last_msg=true
 	) {
 		$this->access=$access;
@@ -100,8 +100,8 @@ class IIWeb {
 		$this->original_echolist=$echoareas;
 		global $session_lifetime;
 
-		$this->interfacename=$interface_name;
-		$this->pageTitle=$default_title;
+		$this->interfacename=($interface_name == null) ? "веб-интерфейс IDEC" : $interface_name;
+		$this->pageTitle=($default_title == null) ? "Всё для спокойного общения" : $default_title;
 		$this->display_last_message=$display_last_msg;
 
 		$local_echolist=[];
@@ -140,20 +140,20 @@ class IIWeb {
 			'<a class="toplink" href="?">К списку эх</a>'
 		];
 		$header="";
-		
+
 		// шаблоны стилей вебморды
 		$htmltop=file_get_contents($tpldir."/top.html");
 		$writerform=file_get_contents($tpldir."/writer-form.html");
 		$settingsform=file_get_contents($tpldir."/settings.html");
 		$htmlbottom=file_get_contents($tpldir."/bottom.html");
-		
+
 		$html=$htmltop;
-		
+
 		// получаем и обрабатываем входные параметры и данные формы, если есть
 		$remote=$this->fetchUserData();
-		
+
 		if(isset($_SESSION["userAuth"])) $links[]="<a class='toplink' href='?logout'>Выйти</a>";
-		
+
 		// если ошибок в проверке формы нет, отправляем сообщение в ii и даём эху на просмотр
 		if ($remote["formdata-validated"]) {
 			global $nodeName;
@@ -172,7 +172,7 @@ class IIWeb {
 				$receiver=$message['from'];
 			}
 			$savedMessage=msg_to_ii($echo, $newmsg["msg"], $newmsg["pointname"], $nodeName.", ".$newmsg["addr"], $newmsg["time"], $receiver, $newmsg["subj"], $repto);
-			
+
 			$header=$echo;
 			$links[]='<a class="toplink" href="?echo={header}">Обновить</a>';
 			$links[]='<a class="toplink" href="?echo={header}&amp;new">Новое</a>';
@@ -240,7 +240,7 @@ class IIWeb {
 		$html=str_replace("{links}", $menu_links, $html);
 		$html=str_replace("{header}", $header, $html);
 		$html=str_replace("{title}", $title, $html);
-		
+
 		$errortext=$remote["form-errors"] ? "<div class='message message-with-repto viewonly'>".$remote['form-errors']."</div>" : "";
 		$passinput=(!isset($_SESSION["userAuth"])) ? '<input class="txt" type="password" placeholder="Строка авторизации" name="authstr" />' : "";
 
@@ -263,18 +263,18 @@ class IIWeb {
 			"message" => null, // это будет массив!
 			"form-errors" => null // а здесь строка
 		];
-		
+
 		if (checkData("echo") && $this->access->checkEcho($_GET['echo']))
 		{
 			if (isset($_GET["new"])) $userDataArray["writenew"]=true;
 			$userDataArray["echoname"]=$_GET["echo"];
-		
+
 		} elseif(checkData("msgid") && $this->access->checkHash($_GET["msgid"]))
 		{
 			if (isset($_GET["reply"])) $userDataArray["reply"]=true;
 			$userDataArray["msgid"]=$_GET["msgid"];
 		}
-		
+
 		if (isset($_GET["logout"])) unset($_SESSION["userAuth"]);
 
 		if (checkData("action") && $_GET["action"] == "personal") $userDataArray["action_settings"] = true;
@@ -283,15 +283,15 @@ class IIWeb {
 			// значит, юзер написал что-то в форму, проверяем
 			$checkSubj=checkData("subj", true);
 			$checkMsg=checkData("msgtext", true);
-			
+
 			// если authstr правильный, то ставим данные в сессию
 			if (!isset($_SESSION["userAuth"])) {
 				if (checkData("authstr", true))	$userAuth=checkUser($_POST["authstr"]);
 				else $userAuth=false;
-				
+
 				if ($userAuth) $_SESSION["userAuth"]=$userAuth;
 			} else $userAuth=$_SESSION["userAuth"];
-			
+
 			if($checkSubj) $userDataArray["message"]["subj"]=$_POST["subj"];
 			else $userDataArray["form-errors"].="Не заполнена тема\n<br />";
 
@@ -299,7 +299,7 @@ class IIWeb {
 			else $userDataArray["form-errors"].="Не заполнено сообщение\n<br />";
 
 			if(!$userAuth) $userDataArray["form-errors"].="Проверьте строку авторизации!\n<br />";
-			
+
 			// если всё правильно, даём добро на отправку сообщения
 			if ( $checkSubj && $checkMsg && $userAuth &&
 				($userDataArray["echoname"] or $userDataArray["msgid"]) &&
@@ -346,7 +346,7 @@ class IIWeb {
 	function printForm($writerform, $echo="", $subj="", $header="Новое сообщение", $msg="", $msgtext="") {
 		$writerform=str_replace("{formheader}", $header, $writerform);
 		$writerform=str_replace("{msg}", $msg, $writerform);
-		
+
 		if($subj) $subj=reparseSubj($subj);
 		$writerform=str_replace("{subj}", $subj, $writerform);
 		$writerform=str_replace("{msgtext}", $msgtext, $writerform);
@@ -382,7 +382,7 @@ class IIWeb {
 		$page=(isset($_GET['page'])) ? (int)$_GET['page'] : $num_pages;
 		if ($page > $num_pages || $page < 1) $page=$num_pages;
 		$start=$page*$pnumber-$pnumber;
-		
+
 		if ($count) {
 			$msglist=$this->access->getMsgList($echo, $start, $pnumber);
 			// сообщения выводятся в обратном порядке
