@@ -3,7 +3,7 @@
 $pushpassword=""; // used for sysop panel and /u/push
 $nodeName="lenina"; // message fingerprint for your node
 
-$postlimit=70000; // limit for base64 pointmsg
+$postlimit=87382; // limit for base64 pointmsg
 $msgtextlimit=65536; // limit for message text (with headers)
 
 // web-interface settings
