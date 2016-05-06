@@ -2,7 +2,12 @@
 require("ii-functions.php");
 header ('Content-Type: text/plain; charset=utf-8');
 
-if (isset($_GET['q'])) {
+function remote ($key, $post=true) {
+	$arr=($post) ? $_POST : $_GET;
+	return (isset($arr[$key]) && !empty($arr[$key]));
+}
+
+if (remote('q', false)) {
 	$q = $_GET['q'];
 	$opts = [];
 
@@ -12,9 +17,9 @@ if (isset($_GET['q'])) {
 	}
 
 	$optc = count($opts);
-	if ($optc == 0) exit();
+	if ($optc == 0) die("error: can't parse GET arguments");
 } else {
-	exit();
+	die("error: please specify API query with 'q' GET parameter");
 }
 
 $auth=0;
@@ -36,7 +41,7 @@ elseif ($opts[0] == 'list.txt') {
 	displayEchoList(null, $counter=true, $descriptions=true);
 }
 
-if ($optc < 2) exit();
+if ($optc < 2) die("error: wrong arguments");
 
 if ($opts[0] == 'u' and $opts[1] == 'm') {
 	$msgids=array_slice($opts, 2);
@@ -50,17 +55,17 @@ if ($opts[0] == 'u' and $opts[1] == 'm') {
 elseif ($opts[0] == 'u' and $opts[1] == 'e') {
 	$work_options=array_slice($opts, 2);
 	$w_opts_count=count($work_options);
-	
+
 	if (
 		count($work_options > 1) and
 		strstr($work_options[$w_opts_count-1], ":")!==false
 	) {
 		$buffer="";
 		$numbers=explode(":", $work_options[$w_opts_count-1]);
-		
+
 		$a=intval($numbers[0]);
 		$b=intval($numbers[1]);
-		
+
 		$echoareas=array_slice($work_options, 0, $w_opts_count-1);
 		$messages=[];
 
@@ -76,7 +81,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'e') {
 		echo $buffer;
 
 	} else {
-		foreach($work_options as $echo) { 
+		foreach($work_options as $echo) {
 			echo $echo."\n".implode("\n", $access->getMsgList($echo))."\n";
 		}
 	}
@@ -88,10 +93,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'point') {
 	) {
 		$au=$opts[2];
 		$ms=$opts[3];
-	} elseif (
-		isset($_POST['pauth']) && isset($_POST['tmsg']) &&
-		$_POST['pauth'] && $_POST['tmsg']
-	) {
+	} elseif (remote('pauth') && remote('tmsg')) {
 		$au=$_POST['pauth'];
 		$ms=$_POST['tmsg'];
 	} else die('error: wrong arguments');
@@ -111,10 +113,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'point') {
 }
 
 elseif ($opts[0] == 'u' and $opts[1] == 'push') {
-	if (
-		isset($_POST['nauth']) && isset($_POST['upush']) && isset($_POST['echoarea'])
-	) {
-		global $pushpassword;
+	if (remote('nauth') && remote('upush') && remote('echoarea')) {
 		if (!empty($pushpassword) && $_POST['nauth'] == $pushpassword) {
 			$bundle=explode("\n", $_POST['upush']);
 			foreach ($bundle as $line) {
@@ -134,13 +133,11 @@ elseif ($opts[0] == 'u' and $opts[1] == 'push') {
 
 elseif ($opts[0] == 'x' and $opts[1] == 'c') {
 	$echos=[];
-	for ($x=2;$x<$optc;$x++) {
-		$echos[]=$opts[$x];
-	}
+	for ($x=2; $x<$optc; $x++) $echos[]=$opts[$x];
 	displayEchoList($echos, $counter=true, $descriptions=false);
 }
 
-elseif ($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
+elseif ($opts[0] == 'x' and $opts[1] == 'e' and remote('data')) {
 	$lines=explode("\n", $_POST['data']);
 	foreach ($lines as $line) {
 		$line=explode(":", $line);
@@ -164,62 +161,71 @@ elseif ($opts[0] == 'x' and $opts[1] == 'e' and !empty($_POST['data'])) {
 	}
 }
 
-elseif ($opts[0] == 'x' and $opts[1] == 'file') {
-	$filenames=array_keys($public_files);
-	$private_filenames=array_keys($private_files);
-
-	$files_info=$public_files;
-
-	if (isset($_POST['pauth']) && !empty ($_POST['pauth'])) {
+elseif ($opts[0] == 'x' and $opts[1] == 'filelist') {
+	if (remote('pauth')) {
 		$authstr=$_POST['pauth'];
 	} elseif (isset($opts[2]) && !empty($opts[2])) {
 		$authstr=$opts[2];
 	} else $authstr=false;
 
-	if (isset($_POST['filename']) && !empty ($_POST['filename'])) {
-		$request_file=$_POST['filename'];
-	} elseif (isset($opts[3]) && !empty($opts[3])) {
-		$request_file=$opts[3];
-	} else $request_file=false;
+	$filenames=array_keys($public_files);
+	$files_info=$public_files;
 
 	if ($authstr!=false && checkUser($authstr) != false) {
-		// значит юзер "свой", и ему можно качать "скрытые" файлы
+		$private_filenames=array_keys($private_files);
 		$filenames=array_merge($filenames, $private_filenames);
 		$files_info=array_merge($files_info, $private_files);
 	}
 
-	if ($request_file) {
-		// значит пользователь запросил файл
-
-		if (
-			in_array($request_file, $filenames)
-		) {
-			// выдаём файл
-			if (ob_get_level()) {
-				ob_end_clean();
-			}
-			$file_path=$files_directory."/".$request_file;
-
-			@readfile($file_path);
-			exit();
-		} else {
-			echo "error: file does not exist or wrong authstr";
-		}
-	} else {
-		// иначе выдаём список файлов
-
-		foreach ($filenames as $filename) {
-			if (@file_exists($files_directory."/".$filename)) {
-				echo $filename.":".filesize($files_directory."/".$filename).":".$files_info[$filename]."\n";
-			}
+	foreach ($filenames as $filename) {
+		if (@file_exists($files_directory."/".$filename)) {
+			echo $filename.":".filesize($files_directory."/".$filename).":".$files_info[$filename]."\n";
 		}
 	}
+}
+
+elseif ($opts[0] == 'x' and $opts[1] == 'file') {
+	$filenames=array_keys($public_files);
+	$private_filenames=array_keys($private_files);
+
+	if (remote('pauth'))
+		$authstr=$_POST['pauth'];
+	elseif ($optc == 4 && !empty($opts[2]))
+		$authstr=$opts[2];
+	else $authstr=false;
+
+	if (remote('filename')) {
+		$request_file=$_POST['filename'];
+	} elseif ($optc == 4 && !empty($opts[3])) {
+		$request_file=$opts[3];
+	} elseif ($optc == 3 && !empty ($opts[2])) {
+		$request_file=$opts[2];
+	} else die("error: specify file name");
+
+	if ($authstr!=false && checkUser($authstr) != false) {
+		// значит юзер "свой", и ему можно качать "скрытые" файлы
+		$filenames=array_merge($filenames, $private_filenames);
+	}
+
+	$file_path=$files_directory."/".$request_file;
+
+	if (in_array($request_file, $filenames) && @file_exists($file_path)) {
+		// выдаём файл
+		if (ob_get_level()) ob_end_clean();
+
+		@readfile($file_path);
+		exit();
+	} else echo "error: file does not exist or wrong authstr";
 }
 
 elseif ($opts[0] == 'x' and $opts[1] == 'features') {
 	// пишем, какие дополнительные фичи умеет данная нода
 
-	echo "u/e\nu/push\nlist.txt\nblacklist.txt\nx/c\nx/file\nx/small-echolist";
+	echo "u/e\nu/push\nlist.txt\nblacklist.txt\nx/c\nx/file\nx/filelist\nx/small-echolist";
+}
+
+else {
+	echo "error: wrong api calls";
 }
 
 ?>
