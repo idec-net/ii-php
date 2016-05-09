@@ -22,10 +22,16 @@ if (remote('q', false)) {
 	die("error: please specify API query with 'q' GET parameter");
 }
 
-$auth=0;
-$authname=0;
+if ($opts[0] == 'blacklist.txt') {
+	echo implode("\n", $access->blacklist);
+}
 
-if ($opts[0] == 'e') {
+elseif ($opts[0] == 'list.txt') {
+	displayEchoList(null, $counter=true, $descriptions=true);
+}
+elseif ($optc < 2) die("error: wrong arguments");
+
+elseif ($opts[0] == 'e') {
 	echo implode("\n", $access->getMsgList($opts[1]))."\n";
 }
 
@@ -33,17 +39,9 @@ elseif ($opts[0] == 'm') {
 	echo $access->getRawMessage($opts[1]);
 }
 
-elseif ($opts[0] == 'blacklist.txt') {
-	echo implode("\n", $access->blacklist);
-}
+elseif ($opts[0] == 'u' and $opts[1] == 'm') {
+	if ($optc == 2) die("error: where are your msgids?");
 
-elseif ($opts[0] == 'list.txt') {
-	displayEchoList(null, $counter=true, $descriptions=true);
-}
-
-if ($optc < 2) die("error: wrong arguments");
-
-if ($opts[0] == 'u' and $opts[1] == 'm') {
 	$msgids=array_slice($opts, 2);
 	$messages=$access->getRawMessages($msgids);
 
@@ -57,7 +55,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'e') {
 	$w_opts_count=count($work_options);
 
 	if (
-		count($work_options > 1) and
+		$w_opts_count > 1 and
 		strstr($work_options[$w_opts_count-1], ":")!==false
 	) {
 		$buffer="";
@@ -88,24 +86,20 @@ elseif ($opts[0] == 'u' and $opts[1] == 'e') {
 }
 
 elseif ($opts[0] == 'u' and $opts[1] == 'point') {
-	if (isset($opts[2]) && isset($opts[3]) &&
-		$opts[2] && $opts[3]
-	) {
+	if ($optc == 4) {
 		$au=$opts[2];
 		$ms=$opts[3];
 	} elseif (remote('pauth') && remote('tmsg')) {
 		$au=$_POST['pauth'];
 		$ms=$_POST['tmsg'];
 	} else die('error: wrong arguments');
-	$addr=0;
-	if(count($ms)>$postlimit) die("error: msg big!");
-	$pointCheck=checkUser($au);
-	if($pointCheck) {
-		$auth=$au;
-		$authname=$pointCheck[0];
-		$addr=$pointCheck[1];
-	}
-	if($auth and $authname) {
+
+	if (count($ms) > $postlimit) die("error: msg big!");
+
+	if ($point=checkUser($au)) {
+		$authname=$point[0];
+		$addr=$point[1];
+
 		pointSend($ms, $authname, $nodeName.", ".$addr);
 	} else {
 		die("error: no auth!");
@@ -114,7 +108,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'point') {
 
 elseif ($opts[0] == 'u' and $opts[1] == 'push') {
 	if (remote('nauth') && remote('upush') && remote('echoarea')) {
-		if (!empty($pushpassword) && $_POST['nauth'] == $pushpassword) {
+		if (!empty($pushpassword) && $_POST['nauth'] === $pushpassword) {
 			$bundle=explode("\n", $_POST['upush']);
 			foreach ($bundle as $line) {
 				$pieces=explode(":", $line);
@@ -132,8 +126,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'push') {
 }
 
 elseif ($opts[0] == 'x' and $opts[1] == 'c') {
-	$echos=[];
-	for ($x=2; $x<$optc; $x++) $echos[]=$opts[$x];
+	$echos=array_slice($opts, 2);
 	displayEchoList($echos, $counter=true, $descriptions=false);
 }
 
@@ -164,7 +157,7 @@ elseif ($opts[0] == 'x' and $opts[1] == 'e' and remote('data')) {
 elseif ($opts[0] == 'x' and $opts[1] == 'filelist') {
 	if (remote('pauth')) {
 		$authstr=$_POST['pauth'];
-	} elseif (isset($opts[2]) && !empty($opts[2])) {
+	} elseif ($optc == 3) {
 		$authstr=$opts[2];
 	} else $authstr=false;
 
@@ -190,15 +183,15 @@ elseif ($opts[0] == 'x' and $opts[1] == 'file') {
 
 	if (remote('pauth'))
 		$authstr=$_POST['pauth'];
-	elseif ($optc == 4 && !empty($opts[2]))
+	elseif ($optc == 4)
 		$authstr=$opts[2];
 	else $authstr=false;
 
 	if (remote('filename')) {
 		$request_file=$_POST['filename'];
-	} elseif ($optc == 4 && !empty($opts[3])) {
+	} elseif ($optc == 4) {
 		$request_file=$opts[3];
-	} elseif ($optc == 3 && !empty ($opts[2])) {
+	} elseif ($optc == 3) {
 		$request_file=$opts[2];
 	} else die("error: specify file name");
 
