@@ -141,6 +141,7 @@ form {
 	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
 	text-align: left;
 	border: none;
+	font: inherit;
 }
 .new-echolist {
 	width: 48% !important;
