@@ -19,7 +19,9 @@ function checkUser($authstr) {
 	for($i=0;$i<count($parr);$i++) {
 		if($parr[$i][0]==$authstr) {
 			$authname=$parr[$i][1];
-			$addr=$i+1;
+
+			if (isset($parr[$i][2])) $addr=$parr[$i][2];
+			else $addr=$i+1;
 			break;
 		}
 	}
