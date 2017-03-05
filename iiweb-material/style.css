@@ -21,11 +21,11 @@ div.links {
 	background: #006064;
 	position: fixed;
 	height: 40pt;
-	left: 0px;
-	top: 0px;
+	left: 0;
+	top: 0;
 	width: 100%;
 	overflow: auto;
-	box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
 	z-index: 2;
 }
 
@@ -37,7 +37,7 @@ div.links {
 	font-weight:bold;
 	float: left;
 	line-height: 40pt;
-	margin: 0px 15pt;
+	margin: 0 15pt;
 }
 
 .links h1 a {
@@ -52,7 +52,7 @@ div.links {
 	margin-bottom: 10pt;
 	text-align: left;
 	padding: 11pt;
-	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
+	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
 	overflow: auto;
 }
 .viewonly {
@@ -62,6 +62,8 @@ div.links {
 a {
 	color:#e65100;
 	text-decoration:none;
+}
+a:focus {
 	outline: none;
 }
 a:hover {
@@ -74,7 +76,7 @@ a:hover {
 	font-size: 10.5pt;
 	float:right;
 	line-height: 40pt;
-	padding:0px 8px 0px 8px;
+	padding:0 8px 0 8px;
 	min-width:100px;
 	text-align:center;
 	user-select: none;
@@ -98,6 +100,7 @@ a.plain {
 }
 
 .date, .quote, .comment, .sender {
+	color: grey;
 	color: rgba(0,0,0,0.54);
 }
 
@@ -114,7 +117,7 @@ p#nav a, p#nav span {
 	background: white;
 	padding: 8pt;
 	color: black;
-	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
+	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
 	margin: 6pt;
 	user-select: none;
 	border-radius: 2px;
@@ -138,7 +141,7 @@ form {
 	background-color: white;
 	padding: 11pt;
 	margin-bottom: 11pt;
-	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
+	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
 	text-align: left;
 	border: none;
 	font: inherit;
@@ -168,6 +171,21 @@ table.small {
 	.submit-wrapper {
 		width: 100%;
 	}
+	body {
+		margin: 0;
+	}
+	div#content {
+		margin: 40pt auto;
+	}
+	#content h3:first-child {
+		padding-top: 10pt;
+	}
+	table#echolist {
+		box-shadow: none;
+	}
+	.message, .message-with-repto {
+		margin-bottom: 3pt;
+	}
 }
 
 select {
@@ -176,7 +194,7 @@ select {
 	-moz-appearance:none;
 	padding: 11pt;
 	background-color: white;
-	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
+	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
 	text-align: left;
 	margin-right: 11pt;
 	border: none;
@@ -190,14 +208,14 @@ textarea {
 	color: white;
 	padding: 10px 15px;
 	border-radius: 2px;
-	box-shadow: 0px 1px 1.5px 1px rgba(0, 0, 0, 0.12);
+	box-shadow: 0 1px 1.5px 1px rgba(0, 0, 0, 0.12);
 	cursor: pointer;
 	border: medium none;
 	transition: box-shadow 0.3s ease-out;
 	z-index: 1;
 }
 .submbtn:hover {
-	box-shadow: 0px 5px 25px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
 }
 
 table.echolist {
@@ -207,7 +225,7 @@ table.echolist {
 	max-width: 900px;
 	text-align: left;
 	border-collapse: collapse;
-	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.26);
+	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
 	border-radius: 2px;
 }
 
@@ -224,11 +242,11 @@ table.echolist th {
 	word-break: break-all;
 }
 .message-container {
-	padding: 0px !important;
-	margin: 0px !important;
+	padding: 0 !important;
+	margin: 0 !important;
 }
 .message-container .message, .message-container .message-with-repto {
-	margin: 0px !important;
+	margin: 0 !important;
 	box-shadow: none !important;
 }
 tr td:not(.message-container) {

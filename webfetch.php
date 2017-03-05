@@ -58,9 +58,9 @@ function fetch_messages($config, $one_request_limit=20, $fetch_limit=false, $xce
 				if(!empty($arr[0])) {
 					$msgid=$arr[0]; $message=b64d($arr[1]);
 					$hash=$access->saveMessage($msgid, $echo, $message, $raw=true);
-					if($hash) {
+					if ($hash) {
 						echo "message saved: ok\n";
-					}
+					} else echo "error saving ".$msgid."\n";
 				}
 			}
 		}

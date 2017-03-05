@@ -38,9 +38,7 @@ function b64d($s) {
 }
 
 function hsh($s) {
-	$s1 = b64c(hash("sha256",$s,true));
-	$s1=str_replace("-","A",$s1);
-	$s1=str_replace("_","z",$s1);
+	$s1 = strtr(b64c(hash("sha256",$s,true)), "-_", "Az");
 	return substr($s1,0,20);
 }
 
@@ -81,9 +79,9 @@ function pointSend($msg, $authname, $addr) {
 	}
 
 	$sent=msg_to_ii($echo,$othermsg,$authname,$addr,$time,$receiver,$subj,$repto);
-	if($sent) {
+	if ($sent) {
 		echo "msg ok:".$sent;
-	}
+	} else echo "error: couldn't save the message (server problem?)";
 }
 
 function msg_to_ii($echo, $msg, $username, $addr, $time, $receiver, $subj, $repto) {

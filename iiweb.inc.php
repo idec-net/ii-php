@@ -172,6 +172,7 @@ class IIWeb {
 				$receiver=$message['from'];
 			}
 			$savedMessage=msg_to_ii($echo, $newmsg["msg"], $newmsg["pointname"], $nodeName.", ".$newmsg["addr"], $newmsg["time"], $receiver, $newmsg["subj"], $repto);
+			if (!$savedMessage) $title = "Ошибка сохранения сообщения!";
 
 			$header=$echo;
 			$links[]='<a class="toplink" href="?echo={header}">Обновить</a>';
@@ -216,7 +217,7 @@ class IIWeb {
 				$html=str_replace("{list}", implode("\n", $simple_echolist), $html);
 				$text="<table class='echolist small'><tr><th>Эхоконференция</th><th>Описание</th></tr>";
 				foreach ($this->original_echolist as $line) {
-					$text.="<tr><td>$line[0]</td><td>".$line[1]."</td></tr>";
+					$text.="<tr><td>".$line[0]."</td><td>".$line[1]."</td></tr>";
 				}
 				$text.="</table>";
 

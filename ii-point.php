@@ -117,6 +117,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'push') {
 					$message=b64d($pieces[1]);
 					$r=$access->saveMessage($msgid, $_POST['echoarea'], $message, $raw=true);
 					if ($r) echo "message saved: ok: ".$msgid."\n";
+					else echo "error saving message ".$msgid."\n";
 				} else {
 					echo "error: wrong data; continue...";
 				}
@@ -204,6 +205,8 @@ elseif ($opts[0] == 'x' and $opts[1] == 'file') {
 
 	if (in_array($request_file, $filenames) && @file_exists($file_path)) {
 		// выдаём файл
+		header ('Content-Type: application/octet-stream');
+		header ('Content-Disposition: attachment; filename="'.$request_file.'"');
 		if (ob_get_level()) ob_end_clean();
 
 		@readfile($file_path);

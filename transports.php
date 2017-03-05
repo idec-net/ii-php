@@ -183,13 +183,16 @@ class TextBase extends TransportCommon implements AbstractTransport {
 		if ($msgid == NULL) {
 			$msgid=hsh($message);
 		}
-		$this->appendMsgList($echo, [$msgid]);
 
 		$f=fopen($this->msgdir."/".$msgid, "wb");
-		fwrite($f, $message);
-		fclose($f);
 
-		return $msgid;
+		if ($f) {
+			fwrite($f, $message);
+			fclose($f);
+
+			$this->appendMsgList($echo, [$msgid]);
+			return $msgid;
+		} else return null;
 	}
 
 	function updateMessage($msgid, $message) {
