@@ -8,10 +8,16 @@ session_set_cookie_params($session_lifetime);
 session_start();
 
 //поддержка ссылок и разметки
-function reparse($string) {
+function reparse($string, $truncate=false, &$truncate_flag) {
 	global $access;
+
 	$pre_flag = false;
 	$string = explode ("\n", $string);
+	if ($truncate && count($string) > $truncate) {
+		$string = array_slice($string, 0, $truncate);
+		$truncate_flag = true;
+	} else $truncate_flag = false;
+
 	for ($i = 0; $i < count ($string); ++$i) {
 		$string[$i] = preg_replace("/([^\w\/])(www\.[a-z0-9\-]+\.[a-z0-9\-]+)/i", "$1http://$2",$string[$i]);
 		$string[$i] = preg_replace("/([\w]+:\/\/[\w-?&;#~=\.\/\@]+[\w\/])/i","<a target=\"_blank\" href=\"$1\">$1</a>",$string[$i]);
@@ -39,6 +45,7 @@ function reparse($string) {
 			$string[$i]=preg_replace("/(^|\s+)(PS|P\.S|ЗЫ|З\.Ы|\/\/|#).+$/i", "<span class='comment'>\\0</span>", $string[$i]);
 		}
 	}
+	if ($pre_flag) $string[count($string) - 1] .= "</pre>";
 	$string = implode("<br />", $string);
 	return $string;
 }
@@ -339,7 +346,19 @@ class IIWeb {
 
 		$ret.= "&nbsp;&nbsp;–&nbsp;&nbsp;<span class='date'>".date("H:i:s Y-m-d", $message['time'])."</span>";
 
-		$ret.="<br /><br />\n<span class='msgtext'>".reparse($message['msg'])."</span>\n";
+		$truncate = false; $truncate_flag = false;
+		if (!$plainlink) {
+			// Если мы смотрим на сообщение в ленте, то его надо обрезать
+			// А если в окне ответа или в отдельном просмотре, то нет
+			// Наличие ссылки на "сырое" сообщение служит индикатором для этого
+			$truncate = 15;
+			$truncate_flag = false;
+		}
+
+		$reparsedMessage = reparse($message['msg'], $truncate, $truncate_flag);
+		if ($truncate_flag) $reparsedMessage.="<br /><br /><a href='?msgid=$msgid'>&gt;&gt; Читать далее</a>";
+
+		$ret.="<br /><br />\n<span class='msgtext'>".$reparsedMessage."</span>\n";
 
 		$ret.="</div>";
 		return $ret;

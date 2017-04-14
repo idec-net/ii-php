@@ -47,17 +47,14 @@ class SysopAdm {
 				$html.=$htmlmain;
 			} elseif ($remote["delechoarea"]) {
 				$msgids=$access->getMsgList($remote["delechoarea"]);
-				foreach ($msgids as $msgid) {
-					$transport->deleteMessage($msgid, $withecho=true);
-					$remote["debug-messages"].="deleted msgid ".$msgid." from echo ".$remote["delechoarea"]."<br />\n";
-				}
+				$transport->deleteMessages($msgids, $withecho=true);
+				$remote["debug-messages"].="Deleted ".$remote["delechoarea"]
+					." (".count($msgids).")<br />\n";
 				$html.=$htmlmain;
 			} elseif ($remote["clearblacklist"]) {
 				$msgids=$access->blacklist;
-				foreach ($msgids as $msgid) {
-					$transport->deleteMessage($msgid, $withecho=true);
-					$remote["debug-messages"].="deleted msgid ".$msgid."<br />\n";
-				}
+				$transport->deleteMessages($msgids, $withecho=true);
+				$remote["debug-messages"].="Clear (".count($msgids).")<br />\n";
 				$html.=$htmlmain;
 			} elseif ($remote["editmessage"]) {
 				if ($remote["updatemessage-text"]) {

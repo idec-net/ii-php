@@ -159,7 +159,7 @@ class TextBase extends TransportCommon implements AbstractTransport {
 
 	function deleteMessages($msgids, $withechoes=NULL) {
 		foreach ($msgids as $msgid) {
-			deleteMessage($msgid, $withechoes);
+			$this->deleteMessage($msgid, $withechoes);
 		}
 	}
 
