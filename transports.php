@@ -449,4 +449,192 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 }
 
+interface AbstractFileTransport {
+	public function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description);
+	public function updateInfo($hash, $fecho, $filename, $address, $description);
+	public function deleteFile($hash, $echo=NULL);
+
+	public function getRawFileList($fecho, $offset, $length);
+	public function getFileList($fecho, $offset, $length, $size=false);
+	public function deleteFileEchoarea($fecho, $with_contents=true);
+
+	public function getFullFilename($hash);
+
+	public function fullFechoList();
+	public function countFiles($echo);
+}
+
+class NoBaseFileTransport {
+	public function __construct($indexdir, $filedir) {
+		if (!file_exists($indexdir)) {
+			mkdir($indexdir, $recursive=true);
+		}
+
+		if (!file_exists($filedir)) {
+			mkdir($filedir, $recursive=true);
+		}
+		$this->indexdir = $indexdir;
+		$this->filedir = $filedir;
+	}
+
+	public function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description) {
+		if ($hash != NULL) {
+			$echoContents = $this->getFileList($fecho);
+
+			$changed = false;
+			foreach ($echoContents as &$entry) {
+				if ($entry["id"] == $hash) {
+					$entry["filename"] = $filename;
+					$entry["address"] = $address;
+					$entry["desc"] = $description;
+
+					$changed = true;
+				}
+			}
+
+			if ($changed) $this->setFileList($fecho, $echoContents);
+		} else {
+			$hash = hsh_file($file["tmp_name"]);
+			$raw_entry = $hash . ":" . $filename . "::" . $address . ":" . $description;
+
+			$this->appendMsgList($fecho, [$raw_entry]);
+		}
+
+		if (move_uploaded_file($file["tmp_name"], $this->indexdir . "/" . $hash)) {
+			return $hash;
+		} else return null;
+	}
+
+	function appendMsgList($echo, $msgids) {
+		$f=fopen($this->indexdir."/".$echo, "ab");
+
+		foreach ($msgids as $msgid) {
+			fwrite($f, $msgid."\n");
+		}
+
+		fclose($f);
+	}
+
+	public function updateInfo($hash, $fecho, $filename, $address, $description) {
+		$entry = [
+			"id" => $hash,
+			"filename" => $filename,
+			"address" => $address,
+			"desc" => $description
+		];
+
+		$list = $this->getFileList($fecho);
+		foreach ($list as &$file) {
+			if ($file["id"] == $hash) $file = $entry;
+		}
+
+		$this->setFileList($fecho, $list);
+	}
+
+	public function deleteFile($hash, $echo=NULL) {
+		if ($echo != NULL) {
+			$echoContents=$this->getFileList($echo);
+
+			for ($i=0; $i < count($echoContents); $i++) {
+				if ($echoContents[$i]["id"] == $hash) {
+					unset($echoContents[$i]);
+					$this->setFileList($echo, $echoContents);
+					break;
+				}
+			}
+		}
+		if (file_exists($this->filedir."/".$hash)) {
+			unlink($this->filedir."/".$hash);
+		}
+	}
+
+	public function getRawFileList($fecho, $offset=NULL, $length=NULL) {
+		$filelist = $this->getFileList($fecho, $offset, $length, $size=true);
+
+		foreach ($filelist as &$file) {
+			$file = $file["id"] . ":" . $file["filename"] . ":" . $file["size"] . ":" . $file["address"] . ":" . $file["desc"];
+		}
+
+		return $filelist;
+	}
+	public function getFileList($fecho, $offset=NULL, $length=NULL, $size=false) {
+		if (!file_exists($this->indexdir."/".$fecho)) return [];
+
+		$list=explode("\n", file_get_contents($this->indexdir."/".$fecho));
+		array_pop($list);
+
+		$target_arr = [];
+
+		if ($offset) {
+			$a=intval($offset);
+
+			if ($length != NULL) $b=intval($length);
+			else $b=NULL;
+
+			$slice=array_slice($list, $a, $b);
+			$target_arr = $slice;
+		}
+
+		foreach ($target_arr as &$rawline) {
+			$pieces = explode(":", $rawline);
+			if (count($pieces) < 5) continue;
+			$entry = [
+				"id" => $pieces[0],
+				"filename" => $pieces[1],
+				"size" => $size ? filesize($this->filedir . "/" . $pieces[0]) : 0,
+				"address" => $pieces[3],
+				"description" => $pieces[4]
+			];
+
+			if (count($pieces) > 5) {
+				for ($i=5; $i < count($pieces); $i++) {
+					$entry["description"] .= ":" . $pieces[$i];
+				}
+			}
+
+			$rawline = $entry;
+		}
+
+		return $target_arr;
+	}
+
+	public function setFileList($fecho, $filelist) {
+		$rawfile = "";
+		foreach($filelist as $entry) {
+			$rawfile .= $entry["id"].":".$entry["filename"]."::".$entry["address"].":".$filename["desc"]."\n";
+		}
+
+		file_put_contents($this->indexdir."/".$fecho, $rawfile);
+	}
+
+	public function deleteFileEchoarea($fecho, $with_contents=true) {
+		if ($with_contents) {
+			$files=$this->getFileList($echo);
+			foreach ($files as $file) {
+				$this->deleteFile($file["id"]);
+			}
+		}
+		unlink($this->indexdir."/".$fecho);
+	}
+
+	public function getFullPath($hash) {
+		return $indexdir . "/" . $hash;
+	}
+
+	public function fullFechoList() {
+		$files=scandir($this->indexdir);
+		$echos=[];
+		foreach($files as $echofile) {
+			if ($echofile!="." && $echofile!="..") {
+				$echos[]=$echofile;
+			}
+		}
+		return $echos;
+	}
+
+	public function countFiles($fecho) {
+		return count($this->getFileList($fecho));
+	}
+}
+
 ?>

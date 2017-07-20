@@ -217,7 +217,109 @@ elseif ($opts[0] == 'x' and $opts[1] == 'file') {
 elseif ($opts[0] == 'x' and $opts[1] == 'features') {
 	// пишем, какие дополнительные фичи умеет данная нода
 
-	echo "u/e\nu/push\nlist.txt\nblacklist.txt\nx/c\nx/file\nx/filelist\nx/small-echolist";
+	echo "u/e\nu/push\nlist.txt\nblacklist.txt\nx/c\nx/file\nx/filelist\nx/small-echolist\nf/";
+}
+
+elseif ($opts[0] == 'f' and $opts[1] == 'e') {
+	$work_options=array_slice($opts, 2);
+	$w_opts_count=count($work_options);
+
+	if (
+		$w_opts_count > 1 and
+		strstr($work_options[$w_opts_count-1], ":")!==false
+	) {
+		$buffer="";
+		$numbers=explode(":", $work_options[$w_opts_count-1]);
+
+		$a=intval($numbers[0]);
+		$b=intval($numbers[1]);
+
+		$echoareas=array_slice($work_options, 0, $w_opts_count-1);
+		$messages=[];
+
+		foreach ($echoareas as $echo) {
+			$slice = $file_access->getRawFileList($echo, $a, $b);
+
+			if (count($slice) > 0) {
+				$buffer.=$echo."\n".implode("\n", $slice)."\n";
+			} else {
+				$buffer.=$echo."\n";
+			}
+		}
+		echo $buffer;
+
+	} else {
+		foreach($work_options as $echo) {
+			echo $echo."\n".implode("\n", $file_access->getRawFileList($echo))."\n";
+		}
+	}
+}
+
+elseif ($opts[0] == 'f' and $opts[1] == 'c') {
+	$echos=array_slice($opts, 2);
+
+	if (count($echos) == 0) {
+		echo "error: you need to specify at least one fecho";
+	}
+
+	foreach ($echos as $fecho) {
+		$size = $file_access -> countFiles($fecho);
+		if ($size != null) {
+			echo $fecho . ":" . $size . "\n";
+		}
+	}
+}
+
+elseif ($opts[0] == 'f' && $opts[1] == 'blacklist.txt') {
+	echo implode("\n", $file_access->blacklist);
+}
+
+elseif ($opts[0] == 'f' && $opts[1] == 'f') {
+	$work_options=array_slice($opts, 2);
+	$w_opts_count=count($work_options);
+
+	if ($w_opts_count == 2) {
+		$hash = $opts[3];
+		$filename = $file_access -> getFullFilename($hash);
+		if ($filename != null) {
+			@readfile($filename);
+		} else {
+			echo "error: wrong file id";
+		}
+	} else {
+		echo "error: wrong options";
+	}
+}
+
+elseif ($opts[0] == 'f' && $opts[1] == 'p') {
+	$pauth = remote('pauth') ? $_POST["pauth"] : null;
+	$fecho = remote('fecho') ? $_POST["fecho"] : null;
+	$dsc = remote('dsc') ? $_POST["dsc"] : null;
+	$file = $_FILES['file'];
+
+	if ($pauth == null ||
+		$fecho == null ||
+		$dsc == null ||
+		$file == null) {
+		echo "error: some of POST options were not specified";
+	} else {
+		$user_info = checkUser($pauth);
+		if ($user_info == false) {
+			echo "error: no auth";
+		} else {
+			$addr = $user_info[1];
+
+			if ($file['error'] != UPLOAD_ERR_OK) {
+				echo "error: upload failed";
+			} else {
+				$hash = $file_access -> saveFile(null, $fecho, $file, $file['filename'], $addr, $dsc);
+
+				if ($hash == 0 || $hash == null) {
+					echo "error: failed to save";
+				} else echo "file ok:".$hash."\n";
+			}
+		}
+	}
 }
 
 else {

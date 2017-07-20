@@ -7,13 +7,6 @@ if (!file_exists("config.php")) copy("config.default.php", "config.php");
 require_once("config.php");
 require_once("filter.php");
 
-// а здесь пара костылей для совместимости, чтобы люди обновились
-
-if (!isset($rss_cache_directory)) $rss_cache_directory="./feeds";
-if (!isset($rss_msgtext_limit)) $rss_msgtext_limit=$msgtextlimit-400;
-
-// если будете регулярно обновляться, то я вот это 个 уберу
-
 function checkUser($authstr) {
 	global $parr;
 	for($i=0;$i<count($parr);$i++) {
@@ -39,6 +32,11 @@ function b64d($s) {
 
 function hsh($s) {
 	$s1 = strtr(b64c(hash("sha256",$s,true)), "-_", "Az");
+	return substr($s1,0,20);
+}
+
+function hsh_file($filename) {
+	$s1 = strtr(b64c(hash_file("sha256",$filename,true)), "-_", "Az");
 	return substr($s1,0,20);
 }
 
