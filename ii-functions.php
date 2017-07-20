@@ -41,6 +41,7 @@ function hsh_file($filename) {
 }
 
 $access=new BaseAccess($transport, $blacklist_file, $msgtextlimit);
+$file_access = new FileAccess($file_transport, $fblacklist_file, $filesize_limit, $max_dir_quota);
 
 function pointSend($msg, $authname, $addr) {
 	$goodmsg=explode("\n", b64d($msg));

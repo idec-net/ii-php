@@ -6,6 +6,9 @@ $nodeName="lenina"; // message fingerprint for your node
 $postlimit=87382; // limit for base64 pointmsg
 $msgtextlimit=65536; // limit for message text (with headers)
 
+$filesize_limit = 1024 * 1024 * 30; // 30M for uploads
+$max_dir_quota = 1024 * 1024 * 1024; // 1G for storage_directory
+
 // web-interface settings
 $session_lifetime=1728000;
 $display_last_msg=true; // show last message on main page
@@ -24,6 +27,7 @@ $rss_msgtext_limit=$msgtextlimit-400;
 $rss_echoareas=["mlp.15", "develop.16"];
 
 $blacklist_file="blacklist.txt";
+$fblacklist_file="fblacklist.txt";
 
 $mysqldata=array(
 	"host" => "localhost",
@@ -35,6 +39,7 @@ $mysqldata=array(
 
 $transport=new TextBase("echo/", "msg/");
 // $transport=new MysqlBase($mysqldata); // for mysql base
+$file_transport = new NoBaseFileTransport("fecho/", "upload_files/");
 
 $parr=[
 	["","root"],
