@@ -497,12 +497,17 @@ class NoBaseFileTransport {
 			$hash = hsh_file($file["tmp_name"]);
 			$raw_entry = $hash . ":" . $filename . "::" . $address . ":" . $description;
 
-			$this->appendMsgList($fecho, [$raw_entry]);
+			if (!file_exists($this->filedir . "/" . $hash))
+				$this->appendMsgList($fecho, [$raw_entry]);
+			else {
+				echo "error: file exists\n";
+				return null;
+			}
 		}
 
-		if (move_uploaded_file($file["tmp_name"], $this->indexdir . "/" . $hash)) {
-			return $hash;
-		} else return null;
+		if (!move_uploaded_file($file["tmp_name"], $this->filedir . "/" . $hash)) {
+			return null;
+		} else return $hash;
 	}
 
 	function appendMsgList($echo, $msgids) {
@@ -548,6 +553,10 @@ class NoBaseFileTransport {
 		}
 	}
 
+	public function getFullFilename($hash) {
+		return $this->filedir . "/" . $hash;
+	}
+
 	public function getRawFileList($fecho, $offset=NULL, $length=NULL) {
 		$filelist = $this->getFileList($fecho, $offset, $length, $size=true);
 
@@ -573,29 +582,35 @@ class NoBaseFileTransport {
 
 			$slice=array_slice($list, $a, $b);
 			$target_arr = $slice;
-		}
+		} else $target_arr = &$list;
 
 		foreach ($target_arr as &$rawline) {
-			$pieces = explode(":", $rawline);
-			if (count($pieces) < 5) continue;
-			$entry = [
-				"id" => $pieces[0],
-				"filename" => $pieces[1],
-				"size" => $size ? filesize($this->filedir . "/" . $pieces[0]) : 0,
-				"address" => $pieces[3],
-				"description" => $pieces[4]
-			];
-
-			if (count($pieces) > 5) {
-				for ($i=5; $i < count($pieces); $i++) {
-					$entry["description"] .= ":" . $pieces[$i];
-				}
-			}
-
-			$rawline = $entry;
+			$entry = $this->parseFileEntry($rawline, $size);
+			if ($entry != null) $rawline = $entry;
+			else unset($rawline);
 		}
 
 		return $target_arr;
+	}
+
+	public function parseFileEntry($rawline, $size, $remote_size=false) {
+		$pieces = explode(":", $rawline);
+		if (count($pieces) < 5) return null;
+		$entry = [
+			"id" => $pieces[0],
+			"filename" => $pieces[1],
+			"size" => $size ? ($remote_size ? $pieces[2] : filesize($this->filedir . "/" . $pieces[0])) : 0,
+			"address" => $pieces[3],
+			"desc" => $pieces[4]
+		];
+
+		if (count($pieces) > 5) {
+			for ($i=5; $i < count($pieces); $i++) {
+				$entry["desc"] .= ":" . $pieces[$i];
+			}
+		}
+
+		return $entry;
 	}
 
 	public function setFileList($fecho, $filelist) {

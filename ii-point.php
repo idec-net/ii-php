@@ -281,10 +281,15 @@ elseif ($opts[0] == 'f' && $opts[1] == 'f') {
 	if ($w_opts_count == 2) {
 		$hash = $opts[3];
 		$filename = $file_access -> getFullFilename($hash);
-		if ($filename != null) {
+		if ($filename != null && file_exists($filename)) {
+			header ('Content-Type: application/octet-stream');
+			header ('Content-Disposition: attachment; filename="'.$hash.'"');
+			if (ob_get_level()) ob_end_clean();
+
 			@readfile($filename);
+			exit();
 		} else {
-			echo "error: wrong file id";
+			echo "error: wrong file id or file does not exist";
 		}
 	} else {
 		echo "error: wrong options";
@@ -307,14 +312,14 @@ elseif ($opts[0] == 'f' && $opts[1] == 'p') {
 		if ($user_info == false) {
 			echo "error: no auth";
 		} else {
-			$addr = $user_info[1];
+			$addr = $nodeName . ", " . $user_info[1];
 
 			if ($file['error'] != UPLOAD_ERR_OK) {
 				echo "error: upload failed";
 			} else {
-				$hash = $file_access -> saveFile(null, $fecho, $file, $file['filename'], $addr, $dsc);
+				$hash = $file_access -> saveFile(null, $fecho, $file, $file['name'], $addr, $dsc);
 
-				if ($hash == 0 || $hash == null) {
+				if ($hash === 0 || $hash === null) {
 					echo "error: failed to save";
 				} else echo "file ok:".$hash."\n";
 			}

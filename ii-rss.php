@@ -92,7 +92,7 @@ function ii_post($item, $echo, $include_link=true, $point) {
 	$message=strip_tags($message, "<img><a>");
 	$message=str_replace("\n\n", "\n", $message);
 
-    $message=preg_replace('/<a.*?href="(.*?)">(.*?)<\/a>/', ' [ \2 ]( \1 ) ', $message);
+    $message=preg_replace('/<a.*?href="(.*?)".*?>(.*?)<\/a>/', ' [ \2 ]( \1 ) ', $message);
     $message=preg_replace('/<img.*?src="(.*?)".*?>/', ' \1 ', $message);
     $message=preg_replace('/\s\s+/', ' ', $message);
 

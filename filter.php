@@ -156,7 +156,7 @@ class FileAccess implements AbstractFileTransport {
 	function applyBlacklist($fecho) {
 		$list=[];
 		foreach($fecho as $entry) {
-			if (!$this->isBlackListed($entry["id"])) $list[]=$msgid;
+			if (!$this->isBlackListed($entry["id"])) $list[]=$entry;
 		}
 		return $list;
 	}
@@ -185,9 +185,9 @@ class FileAccess implements AbstractFileTransport {
 		else return true;
 	}
 
-	function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description) {
+	function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description, $check_only=false) {
 		if (!$this->checkEcho($fecho)) {
-			echo "error: wrong fecho";
+			echo "error: wrong fecho\n";
 			return 0;
 		}
 
@@ -204,27 +204,27 @@ class FileAccess implements AbstractFileTransport {
 		}
 
 		if ($file["size"] > $this->filesize_limit) {
-			echo "error: file size is too large";
+			echo "error: file size is too large\n";
 			return 0;
 		}
 
 		if ($file["size"] + $this->dirSize($this->transport->filedir) > $this->max_dir_quota) {
-			echo "error: node storage quota exceeded, stop saving";
+			echo "error: node storage quota exceeded, stop saving\n";
 			return 0;
 		}
 
 		if (!BaseAccess::checkEcho($filename)) {
-			echo "error: wrong file name";
+			echo "error: wrong file name\n";
 			return 0;
 		}
 
 		if (strlen($description) > 1024) {
-			echo "error: description maximum size is 1024";
+			echo "error: description maximum size is 1024\n";
 			return 0;
 		}
 
 		if (strlen($address) > 120) {
-			echo "error: address maximum size is 120";
+			echo "error: address maximum size is 120\n";
 			return 0;
 		}
 
@@ -233,11 +233,12 @@ class FileAccess implements AbstractFileTransport {
 			or strpos($description, "\n") !== false
 			or strpos($description, "\r") !== false
 		) {
-			echo "error: wrong address or description";
+			echo "error: wrong address or description\n";
 			return 0;
 		}
 
-		return $this->transport->saveFile($hash, $fecho, $file, $filename, $address, $description);
+		if ($check_only) return true;
+		else return $this->transport->saveFile($hash, $fecho, $file, $filename, $address, $description);
 	}
 
 	function dirSize($directory) {
@@ -253,7 +254,7 @@ class FileAccess implements AbstractFileTransport {
 		return $size;
 	}
 
-	public function updateInfo($hash, $fecho, $filename, $description) {
+	public function updateInfo($hash, $fecho, $filename, $address, $description) {
 		if ($this->msgidCheck($hash) && $this->checkEcho($fecho)) return $this->transport->updateInfo($hash, $fecho, $filename, $address, $description);
 		else return false;
 	}
