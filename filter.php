@@ -185,6 +185,12 @@ class FileAccess implements AbstractFileTransport {
 		else return true;
 	}
 
+	static function checkFileName($fname) {
+		$filter='/^[A-Za-z0-9_!-.]{1,60}.[A-Za-z0-9_!-]{1,60}$/';
+		if(!preg_match($filter,$fname)) return false;
+		else return true;
+	}
+
 	function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description, $check_only=false) {
 		if (!$this->checkEcho($fecho)) {
 			echo "error: wrong fecho\n";
@@ -213,7 +219,7 @@ class FileAccess implements AbstractFileTransport {
 			return 0;
 		}
 
-		if (!BaseAccess::checkEcho($filename)) {
+		if (!FileAccess::checkFileName($filename)) {
 			echo "error: wrong file name\n";
 			return 0;
 		}
