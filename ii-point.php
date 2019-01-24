@@ -2,6 +2,7 @@
 require("ii-functions.php");
 header ('Content-Type: text/plain; charset=utf-8');
 
+
 function remote ($key, $post=true) {
 	$arr=($post) ? $_POST : $_GET;
 	return (isset($arr[$key]) && !empty($arr[$key]));
@@ -94,7 +95,7 @@ elseif ($opts[0] == 'u' and $opts[1] == 'point') {
 		$ms=$_POST['tmsg'];
 	} else die('error: wrong arguments');
 
-	if (count($ms) > $postlimit) die("error: msg big!");
+	if (strlen($ms) > $postlimit) die("error: msg big!");
 
 	if ($point=checkUser($au)) {
 		$authname=$point[0];

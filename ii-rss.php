@@ -105,7 +105,7 @@ function ii_post($item, $echo, $include_link=true, $point) {
 		$message.="\nСсылка: ".$link;
 	}
 
-	if (count($message) < $rss_msgtext_limit) {
+	if (strlen($message) < $rss_msgtext_limit) {
 		echo "Saving article '".$subject."'\n";
 		msg_to_ii($echo,$message,$point,$adress,time(),"All",$subject,"");
 	} else {
