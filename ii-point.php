@@ -282,9 +282,20 @@ elseif ($opts[0] == 'f' && $opts[1] == 'f') {
 	if ($w_opts_count == 2) {
 		$hash = $opts[3];
 		$filename = $file_access -> getFullFilename($hash);
+		$filelist = $file_access -> getFileList($opts[2]);
+
+		$filename_pretty = $hash;
+
+		for ($i=0; $i < count($filelist); $i++) {
+			$element = $filelist[$i];
+			if ($element["id"] == $hash) {
+				$filename_pretty = $element["filename"];
+			}
+		}
+
 		if ($filename != null && file_exists($filename)) {
 			header ('Content-Type: application/octet-stream');
-			header ('Content-Disposition: attachment; filename="'.$hash.'"');
+			header ('Content-Disposition: attachment; filename="'.$filename_pretty.'"');
 			if (ob_get_level()) ob_end_clean();
 
 			@readfile($filename);
