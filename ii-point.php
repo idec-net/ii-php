@@ -275,6 +275,14 @@ elseif ($opts[0] == 'f' && $opts[1] == 'blacklist.txt') {
 	echo implode("\n", $file_access->blacklist);
 }
 
+elseif ($opts[0] == 'f' && $opts[1] == 'list.txt') {
+	for ($i=0; $i < count($file_echolist); $i++) {
+		$entry = $file_echolist[$i];
+		$cnt = $file_access->countFiles($entry[0]);
+		echo $entry[0] . ":". $cnt . ":". $entry[1] . "\n";
+	}
+}
+
 elseif ($opts[0] == 'f' && $opts[1] == 'f') {
 	$work_options=array_slice($opts, 2);
 	$w_opts_count=count($work_options);
