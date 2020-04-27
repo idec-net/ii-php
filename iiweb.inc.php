@@ -20,8 +20,8 @@ function reparse($string, $truncate=false, &$truncate_flag) {
 
 	for ($i = 0; $i < count ($string); ++$i) {
 		$string[$i] = preg_replace("/([^\w\/])(www\.[a-z0-9\-]+\.[a-z0-9\-]+)/i", "$1http://$2",$string[$i]);
-		$string[$i] = preg_replace("/([\w]+:\/\/[\w-?&;%#~=\.\/\@]+[\w\/])/i","<a target=\"_blank\" href=\"$1\">$1</a>",$string[$i]);
-		$string[$i] = preg_replace("/([\w-?&;#~=\.\/]+\@(\[?)[a-zA-Z0-9\-\.]+\.([a-zA-Z]{2,3}|[0-9]{1,3})(\]?))/i","<a href=\"mailto:$1\">$1</a>",$string[$i]);
+		$string[$i] = preg_replace("/([\w]+:\/\/[\w\-?&;%#~=\.\/\@]+[\w\/])/i","<a target=\"_blank\" href=\"$1\">$1</a>",$string[$i]);
+		$string[$i] = preg_replace("/([\w\-?&;#~=\.\/]+\@(\[?)[a-zA-Z0-9\-\.]+\.([a-zA-Z]{2,3}|[0-9]{1,3})(\]?))/i","<a href=\"mailto:$1\">$1</a>",$string[$i]);
 		$echo_check = preg_replace("/(.*)\<a target=\"_blank\" href=\"ii:\/\/(.+?)\"\>(.+?)\<\/a\>(.*)/", "$2", $string[$i]);
 		if ($access->checkEcho($echo_check)) {
 			$string[$i] = preg_replace("/target=\"_blank\" href=\"ii:\/\/(.+?)\"/s", "class=\"iilink\" href=\"?echo=$1\"", $string[$i]);
@@ -37,7 +37,7 @@ function reparse($string, $truncate=false, &$truncate_flag) {
 				$string[$i] = preg_replace("/====/", "====</pre>", $string[$i]);
 			}
 		}
-		if(!$pre_flag && preg_match("/^\s?[a-zA-Zа-яА-Я0-9_-]{0,20}(&gt;)+.+$/i", $string[$i])) {
+		if(!$pre_flag && preg_match("/^\s?[a-zA-Zа-яА-Я0-9_\-]{0,20}(&gt;)+.+$/i", $string[$i])) {
 			$string[$i]="<span class='quote'>".$string[$i]."</span>";
 		}
 
