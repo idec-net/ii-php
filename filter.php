@@ -41,7 +41,7 @@ class BaseAccess {
 		else return true;
 	}
 
-	function saveMessage($msgid=NULL, $echo, $message, $raw) {
+	function saveMessage($msgid, $echo, $message, $raw) {
 		if (!$this->checkEcho($echo)) {
 			echo "error: wrong echo";
 			return 0;
@@ -121,6 +121,7 @@ class BaseAccess {
 		foreach ($msgids as $msgid) {
 			if ($this->msgidCheck($msgid)) $msgids_new[]=$msgid;
 		}
+        if (count($msgids_new) == 0) return [];
 		return $this->transport->getMessages($msgids_new);
 	}
 
@@ -191,7 +192,7 @@ class FileAccess implements AbstractFileTransport {
 		else return true;
 	}
 
-	function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description, $check_only=false) {
+	function saveFile($hash, $fecho, $file, $filename, $address, $description, $check_only=false) {
 		if (!$this->checkEcho($fecho)) {
 			echo "error: wrong fecho\n";
 			return 0;

@@ -36,9 +36,20 @@ $mysqldata=array(
 	"pass" => "",
 	"table" => "ii-messages"
 );
+# PostgreSQL requires table names without -
+$postgredata=array(
+	"host" => "localhost",
+	"port" => 5432,
+	"db" => "test",
+	"user" => "psql",
+	"pass" => "",
+	"table" => "idec_messages"
+);
 
 $transport=new TextBase("echo/", "msg/");
 // $transport=new MysqlBase($mysqldata); // for mysql base
+// $transport=new PostgreBase($postgredata); // for postgresql base
+
 $file_transport = new NoBaseFileTransport("fecho/", "upload_files/");
 
 $parr=[

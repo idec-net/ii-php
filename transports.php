@@ -1,7 +1,7 @@
 <?php
 
 interface AbstractTransport {
-	public function saveMessage($msgid=NULL, $echo, $message, $raw);
+	public function saveMessage($msgid, $echo, $message, $raw);
 	public function updateMessage($msgid, $message);
 	public function deleteMessage($msgid, $echo=NULL);
 	public function deleteMessages($msgids, $echo=NULL);
@@ -178,7 +178,7 @@ class TextBase extends TransportCommon implements AbstractTransport {
 		return count($this->getMsgList($echo));
 	}
 
-	function saveMessage($msgid=NULL, $echo, $message, $raw) {
+	function saveMessage($msgid, $echo, $message, $raw) {
 		if (!$raw) $message=$this->makeRaw($message);
 		if ($msgid == NULL) {
 			$msgid=hsh($message);
@@ -285,7 +285,7 @@ class MysqlBase extends TextBase implements AbstractTransport {
 		return $this->executeQuery("insert into `$this->tablename` values(NULL, '".$msg['id']."', '".$msg['tags']."', '".$msg['echo']."', '".$msg['time']."', '".$msg['from']."', '".$msg['addr']."', '".$msg['to']."', '".$msg['subj']."', '".$msg['msg']."')");
 	}
 
-	function saveMessage($msgid=NULL, $echo, $message, $raw) {
+	function saveMessage($msgid, $echo, $message, $raw) {
 		if ($raw) {
 			if (!$msgid) $msgid=hsh($message);
 			$message=$this->makeReadable($message);
@@ -449,8 +449,216 @@ class MysqlBase extends TextBase implements AbstractTransport {
 	}
 }
 
+class PostgreBase extends TextBase implements AbstractTransport {
+	function __construct($data) {
+		$host=$data["host"];
+		$db_name=$data["db"];
+		$user=$data["user"];
+		$pass=$data["pass"];
+		$table=$data["table"];
+        $port=$data["port"];
+
+		$this->db=pg_connect("host=$host port=$port dbname=$db_name user=$user password=$pass");
+		unset($this->setMsgList);
+
+		$db=$this->db;
+		$this->tablename=$table;
+
+		if (!$db) die("unable to connect to database");
+	}
+
+	function __destruct() {
+		pg_close($this->db);
+	}
+
+	function executeQuery($query) {
+        $ret = pg_query($this->db, $query);
+        return $ret;
+	}
+
+	function prepareInsert($message) {
+		$keys=array_keys($message);
+		foreach ($keys as $key) {
+			$message[$key]=pg_escape_literal($this->db, $message[$key]);
+		}
+		return $message;
+	}
+
+	function insertData($msg) {
+        $query = "insert into $this->tablename values(DEFAULT, ".$msg['id'].", ".$msg['tags'].", ".$msg['echo'].", ".$msg['time'].", ".$msg['from'].", ".$msg['addr'].", ".$msg['to'].", ".$msg['subj'].", ".$msg['msg'].")";
+		return $this->executeQuery($query);
+	}
+
+	function saveMessage($msgid, $echo, $message, $raw) {
+		if ($raw) {
+			if (!$msgid) $msgid=hsh($message);
+			$message=$this->makeReadable($message);
+		}
+		if (!$msgid) $msgid=hsh(serialize($message));
+		$message["id"]=$msgid;
+
+		$message["tags"]=$this->collectTags($message["tags"]);
+		$message=$this->prepareInsert($message);
+
+		$this->insertData($message);
+
+		return $msgid;
+	}
+
+	function getMessages($msgids) {
+		$db=$this->db;
+		$messages=[];
+		
+		$part="";
+	
+		for($i=0;$i<count($msgids);$i++) {
+			$part.="id='".pg_escape_string($this->db, $msgids[$i])."'";
+			if ($i!=count($msgids)-1) $part.=" OR ";
+		}
+		$query_text="SELECT * FROM $this->tablename WHERE ".$part;
+		$query=$this->executeQuery($query_text);
+	
+		if(!$query) {
+			echo pg_last_error($this->db)."\n".$query_text."\n";
+			return [];
+		}
+		while($row=pg_fetch_assoc($query)) {
+			$msgid=$row["id"];
+			$messages[$msgid]=[
+				"id" => $msgid,
+				"tags" => $this->parseTags($row["tags"]),
+				"echo" => $row["echoarea"],
+				"time" => $row["date"],
+				"from" => $row["msgfrom"],
+				"addr" => $row["addr"],
+				"to" => $row["msgto"],
+				"subj" => $row["subj"],
+				"msg" => $row["msg"]
+			];
+			if (isset($messages[$msgid]["tags"]["repto"])) {
+				$messages[$msgid]["repto"]=$messages[$msgid]["tags"]["repto"];
+			} else $messages[$msgid]["repto"]=false;
+		}
+		$got_msgids=array_keys($messages);
+		$difference=array_diff($msgids, $got_msgids);
+		if (count($difference) > 0) {
+			foreach($difference as $msgid) $messages[$msgid]=$this->nomessage;
+		}
+		return $messages;
+	}
+
+	function getMessage($msgid) {
+		$data=$this->getMessages([$msgid]);
+		if (isset($data[$msgid])) return $data[$msgid];
+		else return $this->nomessage;
+	}
+
+	function getRawMessage($msgid) {
+		$message=$this->getMessage($msgid);
+		return $this->makeRaw($message);
+	}
+
+	function getRawMessages($msgids) {
+		$messages=$this->getMessages($msgids);
+		$keys=array_keys($messages);
+		$output=[];
+		foreach ($keys as $msgid) {
+			$output[$msgid]=$this->makeRaw($messages[$msgid]);
+		}
+		return $output;
+	}
+
+	function updateMessage($msgid, $message) {
+		$message["tags"]=$this->collectTags($message["tags"]);
+		$message=$this->prepareInsert($message);
+
+		$query_text="UPDATE $this->tablename SET tags=".$message["tags"].
+		", echoarea=".$message["echo"].
+		", date=".$message["time"].
+		", msgfrom=".$message["from"].
+		", addr=".$message["addr"].
+		", msgto=".$message["to"].
+		", subj=".$message["subj"].
+		", msg=".$message["msg"]." ".
+		"WHERE id='".$msgid."'";
+
+		return $this->executeQuery($query_text);
+	}
+
+	function deleteMessage($msgid, $withecho=NULL) {
+		$query_text="DELETE from $this->tablename WHERE id='".$msgid."'";
+		return $this->executeQuery($query_text);
+	}
+
+	function getMsgList($echo, $offset=NULL, $length=NULL) {
+		$query_text="SELECT id, number from $this->tablename ".
+			"where echoarea='".$echo."' order by number";
+
+		if ($offset !== NULL) $a=intval($offset);
+		else $a=NULL;
+		if ($length !== NULL) $b=intval($length);
+		else $b=NULL;
+
+		if ($a === NULL) $query_text.=" asc";
+		elseif ($a < 0) {
+			$a=-$a;
+			$query_text="SELECT * from ($query_text desc LIMIT $a) as tmp order by number asc";
+			if ($b and $b > 0) $query_text.=" LIMIT $b";
+		} else {
+			if (!$b or $b < 0) $b=18446744073709551610;
+			$query_text.=" asc LIMIT $b";
+			if ($a != 0) $query_text.=" OFFSET $a";
+		}
+
+		$query=$this->executeQuery($query_text);
+
+		if ($query) {
+			$array=pg_fetch_all($query);
+            $lst = [];
+            foreach ($array as $key => $value) {
+                $lst[] = $value["id"];
+            }
+			return $lst;
+		} else {
+			die(pg_last_error($this->db)."\n".$query_text);
+		}
+	}
+
+	function countMessages($echo) {
+		$query_text="SELECT count(*) from $this->tablename where echoarea='".$echo."'";
+		$result=$this->executeQuery($query_text);
+
+		$count=pg_fetch_row($result)[0];
+		return $count;
+	}
+
+	function fullEchoList() {
+		$query_text="SELECT DISTINCT echoarea from $this->tablename";
+		$result=$this->executeQuery($query_text);
+
+		if(!$result) {
+			echo pg_last_error($this->db)."\n".$query_text."\n";
+			return [];
+		}
+
+		$output=[];
+		while($row=pg_fetch_assoc($result)) {
+			$output[]=$row["echoarea"];
+		}
+		return $output;
+	}
+
+	function deleteEchoarea($echo, $with_contents=true) {
+		$messages=$this->getMsgList($echo);
+		foreach ($messages as $msgid) {
+			$this->deleteMessage($msgid);
+		}
+	}
+}
+
+
 interface AbstractFileTransport {
-	public function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description);
+	public function saveFile($hash, $fecho, $file, $filename, $address, $description);
 	public function updateInfo($hash, $fecho, $filename, $address, $description);
 	public function deleteFile($hash, $echo=NULL);
 
@@ -477,7 +685,7 @@ class NoBaseFileTransport {
 		$this->filedir = $filedir;
 	}
 
-	public function saveFile($hash=NULL, $fecho, $file, $filename, $address, $description) {
+	public function saveFile($hash, $fecho, $file, $filename, $address, $description) {
 		if ($hash != NULL) {
 			$echoContents = $this->getFileList($fecho);
 
