@@ -613,11 +613,13 @@ class PostgreBase extends TextBase implements AbstractTransport {
 		$query=$this->executeQuery($query_text);
 
 		if ($query) {
-			$array=pg_fetch_all($query);
-            $lst = [];
-            foreach ($array as $key => $value) {
-                $lst[] = $value["id"];
-            }
+            		$lst = [];
+			if (pg_num_rows($query) > 0) {
+				$array=pg_fetch_all($query);
+				foreach ($array as $key => $value) {
+					$lst[] = $value["id"];
+				}
+			}
 			return $lst;
 		} else {
 			die(pg_last_error($this->db)."\n".$query_text);
